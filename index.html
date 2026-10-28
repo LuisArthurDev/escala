@@ -9,25 +9,25 @@
 @media(prefers-color-scheme:dark){:root{--bg:#10161d;--fg:#e8edf3;--card:#18212b;--bd:#2f3c4a;--ac:#7fb0ee;--off:#6e3320;--offt:#ffd9cb;--bad:#ff8a80;--mut:#98a6b5;--sun:#202c3a}}
 *{box-sizing:border-box}
 body{margin:0;padding:16px;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
-main{max-width:1200px;margin:auto}
+main{max-width:1000px;margin:auto}
 h1{font-size:1.5rem;margin:0 0 12px}
 h2{font-size:1.05rem;margin:0 0 8px}
-section{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:14px;margin-bottom:14px}
+section{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:12px}
 .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 button,select,input{font:inherit;color:inherit;background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:6px 10px}
 button{cursor:pointer}button.pri{background:var(--ac);color:#fff;border-color:var(--ac)}
 :focus-visible{outline:2px solid var(--ac);outline-offset:2px}
-.sc{overflow-x:auto}
-table{border-collapse:collapse;width:100%}
-th,td{border:1px solid var(--bd);text-align:center;padding:4px 2px;min-width:34px;font-size:.82rem}
+.sc{overflow-x:hidden}
+table{border-collapse:collapse;width:100%;table-layout:fixed}
+th,td{border:1px solid var(--bd);text-align:center;padding:3px 2px;min-width:24px;font-size:.7rem}
 th small{color:var(--mut);font-weight:400}
 th.sun{background:var(--sun)}th.bad{color:var(--bad);box-shadow:inset 0 -3px var(--bad)}
-td.nm,th.nm{text-align:left;min-width:150px;padding:6px 8px;position:sticky;left:0;background:var(--card)}
+td.nm,th.nm{text-align:left;min-width:120px;padding:6px 8px;position:sticky;left:0;background:var(--card)}
 td.c{cursor:pointer;color:var(--mut)}
 td.c:hover{background:var(--sun)}
 td.off{background:var(--off);color:var(--offt);font-weight:700}
 td.lk{box-shadow:inset 0 0 0 2px var(--ac)}
-.cfg{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px}
+.cfg{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
 .cfg div{border:1px solid var(--bd);border-radius:6px;padding:8px;display:grid;gap:6px}
 .cfg label{font-size:.8rem;color:var(--mut)}
 .row{display:flex;gap:6px;align-items:center}
@@ -51,7 +51,7 @@ dialog::backdrop{background:#0008}
     <button id="nx" aria-label="Próximo mês">▶</button>
     <button id="clr">Limpar edições do mês</button>
   </div>
-  <p class="mut">Clique em um dia para trocar folga/trabalho. Os dias seguintes são recalculados. Clique de novo em um dia editado (borda azul) para voltar ao automático. F = folga, →X = cobrindo ...</p>
+  <p class="mut">Clique em um dia para trocar folga/trabalho. Os dias seguintes são recalculados. Clique de novo em um dia editado (borda azul) para voltar ao automático. F = folga, T = trabalho, →G1/G2 = cobertura.</p>
   <div class="sc"><table id="tb"></table></div>
 </section>
 
@@ -68,16 +68,6 @@ dialog::backdrop{background:#0008}
 <section>
   <h2>Funcionários e horários</h2>
   <div class="cfg" id="cfg"></div>
-</section>
-
-<section>
-  <h2>Armazenamento</h2>
-  <p class="mut">Os dados ficam salvos neste navegador. Para guardar backup em arquivo, use exportar/importar em JSON. A sincronização com Apps Script fica escondida no código.</p>
-  <div class="bar">
-    <button id="ex" class="pri">Exportar escala</button>
-    <button id="im">Importar escala</button>
-    <input id="fi" type="file" accept="application/json" hidden>
-  </div>
 </section>
 </main>
 
@@ -106,7 +96,23 @@ const iso=d=>new Date(d*864e5).toISOString().slice(0,10);
 const wdOf=d=>new Date(d*864e5).getUTCDay();
 const fmt=d=>iso(d).split('-').reverse().slice(0,2).join('/');
 const esc=s=>String(s).replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const save=()=>localStorage.setItem(KEY,JSON.stringify(S));
+const shortName=(p)=>{
+  const n=(S.names[p]||'').toLowerCase();
+  if(n.includes('gerente geral'))return 'GG';
+  if(n.includes('gerente 1'))return 'G1';
+  if(n.includes('gerente 2'))return 'G2';
+  if(n.includes('auxiliar'))return 'A';
+  return (S.names[p]||'').slice(0,2).toUpperCase();
+};
+
+const saveLocal=()=>localStorage.setItem(KEY,JSON.stringify(S));
+async function saveToCloud(){
+  if(!APP_SCRIPT_URL||APP_SCRIPT_URL.includes('SEU_ID_DO_APPS_SCRIPT'))return;
+  try{
+    await fetch(APP_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(S)});
+  }catch(e){console.warn('Erro ao sincronizar com Apps Script:',e);}
+}
+const save=()=>{saveLocal(); saveToCloud();};
 
 function normalizeState(raw){
   const base={names:['Gerente Geral','Gerente 1','Gerente 2','Auxiliar'],t:[['09:00','18:00'],['12:00','21:00'],['08:00','17:00'],['08:00','17:00']],over:[{},{},{},{}],url:''};
@@ -128,48 +134,22 @@ function normalizeState(raw){
   return next;
 }
 
-async function saveToCloud(){
-  if(!APP_SCRIPT_URL||APP_SCRIPT_URL.includes('SEU_ID_DO_APPS_SCRIPT'))return alert('Apps Script não configurado no código.');
-  try{await fetch(APP_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(S)});alert('Enviado para a nuvem.');}
-  catch(e){alert('Erro ao salvar: '+e.message)}
-}
-
 async function loadFromCloud(){
-  if(!APP_SCRIPT_URL||APP_SCRIPT_URL.includes('SEU_ID_DO_APPS_SCRIPT'))return alert('Apps Script não configurado no código.');
+  if(!APP_SCRIPT_URL||APP_SCRIPT_URL.includes('SEU_ID_DO_APPS_SCRIPT'))return null;
   try{
-    const j=await (await fetch(APP_SCRIPT_URL)).json();
-    if(!j||!j.names)return alert('Ainda não há dados salvos na nuvem.');
-    S={...normalizeState(j),url:APP_SCRIPT_URL};save();location.reload();
-  }catch(e){alert('Erro ao carregar: '+e.message)}
-}
-
-function exportEscala(){
-  const payload={version:2,exportedAt:new Date().toISOString(),names:S.names,t:S.t,over:S.over,url:APP_SCRIPT_URL};
-  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
-  const a=document.createElement('a');
-  const fileName=`escala-5x2-${new Date().toISOString().slice(0,10)}.json`;
-  a.href=URL.createObjectURL(blob);
-  a.download=fileName;
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
-function importEscala(event){
-  const [file]=event.target.files||[];
-  if(!file)return;
-  const reader=new FileReader();
-  reader.onload=()=>{
-    try{
-      const parsed=JSON.parse(String(reader.result));
-      S=normalizeState(parsed);
-      save();
-      location.reload();
-    }catch(err){
-      alert('Arquivo inválido. Escolha um JSON exportado pela escala.');
-    }
-  };
-  reader.readAsText(file);
-  event.target.value='';
+    const r=await fetch(APP_SCRIPT_URL,{method:'GET',cache:'no-store'});
+    if(!r.ok) return null;
+    const text=await r.text();
+    if(!text) return null;
+    const j=JSON.parse(text);
+    if(!j||!j.names) return null;
+    S=normalizeState(j);
+    saveLocal();
+    return S;
+  }catch(e){
+    console.warn('Erro ao carregar do Apps Script:',e);
+    return null;
+  }
 }
 
 /* Motor: 0 = Gerente Geral, 1 = Gerente 1, 2 = Gerente 2, 3 = Auxiliar.
@@ -227,7 +207,8 @@ function render(){
       const d=a+j,i=d-D0,off=R[p][i],lk=S.over[p][iso(d)]!==undefined,cv=off?undefined:cov(R,i)[p];
       c+=off;
       const t=cv!==undefined?`Cobre ${esc(S.names[cv])} (${S.t[cv][0]}–${S.t[cv][1]})`:'';
-      h+=`<td class="c ${off?'off':''} ${lk?'lk':''}" data-p="${p}" data-d="${d}" title="${t}">${off?'F':cv!==undefined?'→'+esc(S.names[cv][0]):'·'}</td>`;
+      const label=off?'F':cv!==undefined?`→${shortName(cv)}`:'T';
+      h+=`<td class="c ${off?'off':''} ${lk?'lk':''}" data-p="${p}" data-d="${d}" title="${t}">${label}</td>`;
     }
     h+=`<td><b>${c}</b></td></tr>`;
   }
@@ -298,10 +279,13 @@ $('#m').innerHTML=MES.map((x,i)=>`<option value="${i}">${x}</option>`).join('');
 const hoje=new Date();
 $('#y').value=Math.max(2026,hoje.getFullYear());
 $('#m').value=hoje.getFullYear()<2026?0:hoje.getMonth();
-$('#ex').onclick=exportEscala;
-$('#im').onclick=()=>$('#fi').click();
-$('#fi').onchange=importEscala;
-render();
+
+(async()=>{
+  if(APP_SCRIPT_URL && !APP_SCRIPT_URL.includes('SEU_ID_DO_APPS_SCRIPT')){
+    await loadFromCloud();
+  }
+  render();
+})();
 </script>
 </body>
 </html>
