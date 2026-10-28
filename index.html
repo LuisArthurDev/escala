@@ -17,12 +17,12 @@ section{background:var(--card);border:1px solid var(--bd);border-radius:8px;padd
 button,select,input{font:inherit;color:inherit;background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:6px 10px}
 button{cursor:pointer}button.pri{background:var(--ac);color:#fff;border-color:var(--ac)}
 :focus-visible{outline:2px solid var(--ac);outline-offset:2px}
-.sc{overflow-x:hidden}
+.sc{overflow-x:auto;overflow-y:hidden}
 table{border-collapse:collapse;width:100%;table-layout:fixed}
-th,td{border:1px solid var(--bd);text-align:center;padding:2px 1px;min-width:18px;max-width:20px;font-size:.64rem}
+th,td{border:1px solid var(--bd);text-align:center;padding:2px 1px;min-width:18px;max-width:20px;font-size:.62rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 th small{color:var(--mut);font-weight:400}
 th.sun{background:var(--sun)}th.bad{color:var(--bad);box-shadow:inset 0 -3px var(--bad)}
-td.nm,th.nm{text-align:left;min-width:130px;max-width:130px;padding:6px 8px;position:sticky;left:0;background:var(--card)}
+td.nm,th.nm{text-align:left;min-width:120px;max-width:120px;padding:6px 8px;position:sticky;left:0;background:var(--card);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 td.c{cursor:pointer;color:var(--mut)}
 td.c:hover{background:var(--sun)}
 td.off{background:var(--off);color:var(--offt);font-weight:700}
@@ -35,6 +35,7 @@ td.lk{box-shadow:inset 0 0 0 2px var(--ac)}
 ul{margin:0;padding-left:20px}
 .bad-t{color:var(--bad)}
 .mut{color:var(--mut);font-size:.85rem}
+#saveStatus{min-height:1.2em}
 dialog{border:1px solid var(--bad);border-radius:8px;background:var(--card);color:var(--fg);max-width:420px}
 dialog::backdrop{background:#0008}
 </style>
@@ -68,6 +69,14 @@ dialog::backdrop{background:#0008}
 <section>
   <h2>Funcionários e horários</h2>
   <div class="cfg" id="cfg"></div>
+</section>
+
+<section>
+  <h2>Armazenamento</h2>
+  <div class="bar" style="justify-content:space-between; width:100%">
+    <button id="saveNow" class="pri">Salvar agora</button>
+    <span id="saveStatus" class="mut">Salvamento automático ativo.</span>
+  </div>
 </section>
 </main>
 
@@ -106,13 +115,29 @@ const shortName=(p)=>{
 };
 
 const saveLocal=()=>localStorage.setItem(KEY,JSON.stringify(S));
+const setSaveStatus=(msg)=>{ const el=$('#saveStatus'); if(el) el.textContent=msg; };
 async function saveToCloud(){
-  if(!APP_SCRIPT_URL||APP_SCRIPT_URL.includes('AKfycbxBJo5T9B-kolCGasn_F4KVQ9g9OneJ7hieB4FpBXra2j3XBa90CIWjpoRo8hXQRmJz'))return;
+  if(!APP_SCRIPT_URL)return;
   try{
     await fetch(APP_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(S)});
-  }catch(e){console.warn('Erro ao sincronizar com Apps Script:',e);}
+    return true;
+  }catch(e){
+    console.warn('Erro ao sincronizar com Apps Script:',e);
+    return false;
+  }
 }
-const save=()=>{saveLocal(); saveToCloud();};
+const save=async()=>{
+  saveLocal();
+  const ok=await saveToCloud();
+  setSaveStatus(ok ? 'Salvo automaticamente.' : 'Salvo no navegador. Falha na nuvem.');
+};
+
+$('#saveNow').onclick=async()=>{
+  setSaveStatus('Salvando...');
+  saveLocal();
+  const ok=await saveToCloud();
+  setSaveStatus(ok ? 'Salvo com sucesso.' : 'Salvo no navegador. Falha na nuvem.');
+};
 
 function normalizeState(raw){
   const base={names:['Gerente Manha','Gerente Geral','Gerente Tarde','Auxiliar'],t:[['07:00','15:10'],['09:00','17:00'],['13:00','19:00'],['14:00','23:00']],over:[{},{},{},{}],url:''};
@@ -135,7 +160,7 @@ function normalizeState(raw){
 }
 
 async function loadFromCloud(){
-  if(!APP_SCRIPT_URL||APP_SCRIPT_URL.includes('AKfycbxBJo5T9B-kolCGasn_F4KVQ9g9OneJ7hieB4FpBXra2j3XBa90CIWjpoRo8hXQRmJz'))return null;
+  if(!APP_SCRIPT_URL)return null;
   try{
     const r=await fetch(APP_SCRIPT_URL,{method:'GET',cache:'no-store'});
     if(!r.ok) return null;
@@ -279,9 +304,9 @@ $('#m').innerHTML=MES.map((x,i)=>`<option value="${i}">${x}</option>`).join('');
 const hoje=new Date();
 $('#y').value=Math.max(2026,hoje.getFullYear());
 $('#m').value=hoje.getFullYear()<2026?0:hoje.getMonth();
-
+setSaveStatus('Salvamento automático ativo.');
 (async()=>{
-  if(APP_SCRIPT_URL && !APP_SCRIPT_URL.includes('AKfycbxBJo5T9B-kolCGasn_F4KVQ9g9OneJ7hieB4FpBXra2j3XBa90CIWjpoRo8hXQRmJz')){
+  if(APP_SCRIPT_URL){
     await loadFromCloud();
   }
   render();
