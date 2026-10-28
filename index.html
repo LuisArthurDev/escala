@@ -408,8 +408,19 @@ function issues(R, d) {
   const folga = p => !!R[p][i];
 
   // Folga na quinta-feira: férias não contam como folga da escala.
-  if (w === 4 && ativos.some(p => folga(p))) {
-    m.push('Folga na quinta-feira');
+  if (w === 4) {
+    const temFolgaForaDasFerias = [0, 1, 2, 3].some(p => {
+      if (!R[p][i]) return false;
+  
+      const data = iso(d);
+      const ferias = vacationFor(p, data);
+  
+      return !ferias;
+    });
+  
+    if (temFolgaForaDasFerias) {
+      m.push('Folga na quinta-feira');
+    }
   }
 
   // Duas folgas entre os três gerentes no mesmo dia.
