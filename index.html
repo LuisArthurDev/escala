@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Escala 5x2</title>
+<style>
+:root{--bg:#eef1f5;--fg:#16202b;--card:#fff;--bd:#cfd6df;--ac:#1f4e8c;--off:#f2b8a2;--offt:#7a2a12;--bad:#c62828;--mut:#5d6b7a;--sun:#e3ebf6}
+@media(prefers-color-scheme:dark){:root{--bg:#10161d;--fg:#e8edf3;--card:#18212b;--bd:#2f3c4a;--ac:#7fb0ee;--off:#6e3320;--offt:#ffd9cb;--bad:#ff8a80;--mut:#98a6b5;--sun:#202c3a}}
+*{box-sizing:border-box}
+body{margin:0;padding:16px;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1200px;margin:auto}
+h1{font-size:1.5rem;margin:0 0 12px}
+h2{font-size:1.05rem;margin:0 0 8px}
+section{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:14px;margin-bottom:14px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button,select,input{font:inherit;color:inherit;background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:6px 10px}
+button{cursor:pointer}button.pri{background:var(--ac);color:#fff;border-color:var(--ac)}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.sc{overflow-x:auto}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid var(--bd);text-align:center;padding:4px 2px;min-width:34px;font-size:.82rem}
+th small{color:var(--mut);font-weight:400}
+th.sun{background:var(--sun)}th.bad{color:var(--bad);box-shadow:inset 0 -3px var(--bad)}
+td.nm,th.nm{text-align:left;min-width:150px;padding:6px 8px;position:sticky;left:0;background:var(--card)}
+td.c{cursor:pointer;color:var(--mut)}
+td.c:hover{background:var(--sun)}
+td.off{background:var(--off);color:var(--offt);font-weight:700}
+td.lk{box-shadow:inset 0 0 0 2px var(--ac)}
+.cfg{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px}
+.cfg div{border:1px solid var(--bd);border-radius:6px;padding:8px;display:grid;gap:6px}
+.cfg label{font-size:.8rem;color:var(--mut)}
+.row{display:flex;gap:6px;align-items:center}
+.row input[type=time]{flex:1}
+ul{margin:0;padding-left:20px}
+.bad-t{color:var(--bad)}
+.mut{color:var(--mut);font-size:.85rem}
+dialog{border:1px solid var(--bad);border-radius:8px;background:var(--card);color:var(--fg);max-width:420px}
+dialog::backdrop{background:#0008}
+</style>
+</head>
+<body>
+<main>
+<h1>Escala 5x2</h1>
+
+<section>
+  <div class="bar">
+    <button id="pv" aria-label="Mês anterior">◀</button>
+    <select id="m"></select>
+    <input id="y" type="number" min="2026" max="2100" style="width:90px" aria-label="Ano">
+    <button id="nx" aria-label="Próximo mês">▶</button>
+    <button id="clr">Limpar edições do mês</button>
+  </div>
+  <p class="mut">Clique em um dia para trocar folga/trabalho. Os dias seguintes são recalculados. Clique de novo em um dia editado (borda azul) para voltar ao automático. F = folga, →X = cobrindo a folga de X.</p>
+  <div class="sc"><table id="tb"></table></div>
+</section>
+
+<section>
+  <h2>Próximas folgas</h2>
+  <ul id="nxt"></ul>
+</section>
+
+<section>
+  <h2>Alertas do mês</h2>
+  <ul id="iss"></ul>
+</section>
+
+<section>
+  <h2>Funcionários e horários</h2>
+  <div class="cfg" id="cfg"></div>
+</section>
+
+<section>
+  <h2>Armazenamento</h2>
+  <p class="mut">Os dados ficam salvos neste navegador. Para guardar na nuvem, cole a URL do Apps Script (Web App).</p>
+  <div class="bar">
+    <input id="url" placeholder="https://script.google.com/macros/s/.../exec" style="flex:1;min-width:240px">
+    <button id="up" class="pri">Salvar na nuvem</button>
+    <button id="dn">Carregar da nuvem</button>
+  </div>
+</section>
+</main>
+
+<dialog id="dg">
+  <div id="dm"></div>
+  <div class="bar" style="justify-content:flex-end">
+    <button id="no">Cancelar</button>
+    <button id="ok" class="pri">Continuar e recalcular</button>
+  </div>
+</dialog>
+
+<script>
+const $=s=>document.querySelector(s);
+const MES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const DN=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const D0=Date.UTC(2026,0,1)/864e5;
+const KEY='escala5x2v2';
+let S;
+try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+S=S||{names:['Gerente Geral','Gerente','Auxiliar','Folguista'],
+ t:[['09:00','18:00'],['12:00','21:00'],['08:00','17:00'],['08:00','17:00']],
+ over:[{},{},{},{}],url:''};
+
+const iso=d=>new Date(d*864e5).toISOString().slice(0,10);
+const wdOf=d=>new Date(d*864e5).getUTCDay();
+const fmt=d=>iso(d).split('-').reverse().slice(0,2).join('/');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const save=()=>localStorage.setItem(KEY,JSON.stringify(S));
+
+/* Motor: 0 = Gerente Geral, 1 = Gerente, 2 = Auxiliar, 3 = Folguista.
+   Cada folga se repete 7 dias depois; uma edição manual muda o ciclo dali em diante. */
+const PREF=[[6,1],[0,3],[5,2],[1,3]];
+function run(end){
+  const B=D0-7,k=[0,0,0,0],pend=[0,0,0,0],R=[[],[],[],[]];
+  for(let d=B;d<=end;d++){
+    const w=wdOf(d),i=d-B,off=[0,0,0,0],lk=[0,0,0,0];
+    if(d>=D0)for(let p=0;p<4;p++){const v=S.over[p][iso(d)];if(v!==undefined){off[p]=v;lk[p]=1;if(v)pend[p]=0}}
+    const reg=()=>off[0]+off[1]+off[2];
+    const l6=p=>{let c=0;for(let j=Math.max(0,i-6);j<i;j++)c+=R[p][j];return c};
+    for(let pass=0;pass<3;pass++)for(let p=0;p<4;p++){
+      if(lk[p]||off[p])continue;
+      if(pass==0){if(k[p]>=5)off[p]=1;continue}
+      const want=pass==1?(pend[p]||(i>=7?R[p][i-7]:PREF[p].includes(w))):(i>=14&&k[p]>=3&&l6(p)<2);
+      if(!want)continue;
+      if(l6(p)>=2){pend[p]=0;continue}
+      if(w==4||(i>0&&R[p][i-1])||(p<3&&reg())){pend[p]=1;continue}
+      off[p]=1;pend[p]=0;
+    }
+    for(let p=0;p<4;p++){R[p].push(off[p]);if(off[p])k[p]=0;else k[p]++}
+  }
+  return R.map(a=>a.slice(7));
+}
+function issues(R,d){
+  const i=d-D0,w=wdOf(d),o=p=>R[p][i],m=[];
+  if(w==4&&(o(0)||o(1)||o(2)||o(3)))m.push('Folga na quinta-feira');
+  if(o(0)+o(1)+o(2)>1)m.push('Duas folgas no mesmo dia');
+  if(w==0&&4-o(0)-o(1)-o(2)-o(3)<2)m.push('Domingo com menos de 2 trabalhando');
+  for(let p=0;p<4;p++){let c=0;for(let j=i;j>=0&&!R[p][j];j--)c++;if(c>5)m.push(S.names[p]+': mais de 5 dias seguidos')}
+  for(let p=0;p<4;p++)if(i>0&&R[p][i]&&R[p][i-1])m.push(S.names[p]+': folgas seguidas');
+  return m;
+}
+function cov(R,i){
+  const o=p=>R[p][i],u=[0,1,2].filter(o),c={};
+  for(const p of [3,0,1])if(!o(p)&&u.length)c[p]=u.shift();
+  return c;
+}
+
+function render(){
+  const y=+$('#y').value,m=+$('#m').value;
+  const n=new Date(Date.UTC(y,m+1,0)).getUTCDate(),a=Date.UTC(y,m,1)/864e5,R=run(a+n-1);
+  let h='<tr><th class="nm">Funcionário</th>',all=[];
+  for(let j=0;j<n;j++){
+    const d=a+j,w=wdOf(d),is=issues(R,d);
+    if(is.length)all.push(`<li class="bad-t">${fmt(d)} (${DN[w]}): ${is.join('; ')}</li>`);
+    h+=`<th class="${w==0?'sun ':''}${is.length?'bad':''}" title="${esc(is.join('; '))}">${j+1}<br><small>${DN[w]}</small></th>`;
+  }
+  h+='<th>Folgas</th></tr>';
+  for(let p=0;p<4;p++){
+    h+=`<tr><td class="nm"><b>${esc(S.names[p])}</b><br><small class="mut">${S.t[p][0]}–${S.t[p][1]}</small></td>`;
+    let c=0;
+    for(let j=0;j<n;j++){
+      const d=a+j,i=d-D0,off=R[p][i],lk=S.over[p][iso(d)]!==undefined,cv=off?undefined:cov(R,i)[p];
+      c+=off;
+      const t=cv!==undefined?`Cobre ${esc(S.names[cv])} (${S.t[cv][0]}–${S.t[cv][1]})`:'';
+      h+=`<td class="c ${off?'off':''} ${lk?'lk':''}" data-p="${p}" data-d="${d}" title="${t}">${off?'F':cv!==undefined?'→'+esc(S.names[cv][0]):'·'}</td>`;
+    }
+    h+=`<td><b>${c}</b></td></tr>`;
+  }
+  $('#tb').innerHTML=h;
+  $('#iss').innerHTML=all.join('')||'<li>Nenhum alerta neste mês.</li>';
+
+  const t=Math.max(D0,Math.floor(Date.now()/864e5)),R2=run(t+60);
+  $('#nxt').innerHTML=[0,1,2,3].map(p=>{
+    for(let d=t;d<=t+60;d++)if(R2[p][d-D0])return `<li><b>${esc(S.names[p])}</b>: ${d==t?'hoje':fmt(d)+' ('+DN[wdOf(d)]+')'}</li>`;
+    return `<li><b>${esc(S.names[p])}</b>: sem folga nos próximos 60 dias</li>`;
+  }).join('');
+}
+
+function modal(msgs,ok,no){
+  $('#dm').innerHTML='<h2>⚠ Esta edição quebra uma regra</h2><ul>'+msgs.map(x=>`<li>${esc(x)}</li>`).join('')+'</ul><p>Se continuar, todas as folgas seguintes serão recalculadas a partir deste dia.</p>';
+  const dg=$('#dg');
+  dg.oncancel=()=>no();
+  $('#ok').onclick=()=>{dg.close();ok()};
+  $('#no').onclick=()=>{dg.close();no()};
+  dg.showModal();
+}
+
+$('#tb').onclick=e=>{
+  const c=e.target.closest('td.c');if(!c)return;
+  const p=+c.dataset.p,d=+c.dataset.d,k=iso(d),o=S.over[p];
+  if(o[k]!==undefined){delete o[k];save();render();return}
+  o[k]=run(d)[p][d-D0]?0:1;
+  const R=run(d+1),i=d-D0,m=issues(R,d),msg=S.names[p]+': folgas seguidas';
+  if(R[p][i]&&R[p][i+1]&&!m.includes(msg))m.push(msg);
+  if(m.length)modal(m,()=>{save();render()},()=>{delete o[k];render()});
+  else{save();render()}
+};
+
+$('#clr').onclick=()=>{
+  const y=+$('#y').value,m=+$('#m').value,pre=`${y}-${String(m+1).padStart(2,'0')}`;
+  S.over.forEach(o=>Object.keys(o).forEach(k=>{if(k.startsWith(pre))delete o[k]}));
+  save();render();
+};
+
+function go(dm){
+  let y=+$('#y').value,m=+$('#m').value+dm;
+  if(m<0){m=11;y--}if(m>11){m=0;y++}
+  if(y<2026){y=2026;m=0}
+  $('#y').value=y;$('#m').value=m;render();
+}
+$('#pv').onclick=()=>go(-1);$('#nx').onclick=()=>go(1);
+$('#m').onchange=()=>go(0);
+$('#y').onchange=()=>{if(+$('#y').value<2026)$('#y').value=2026;go(0)};
+
+const roles=['Gerente Geral (cobre qualquer um)','Gerente (cobre qualquer um)','Auxiliar','Folguista (cobre as folgas)'];
+$('#cfg').innerHTML=[0,1,2,3].map(p=>`<div>
+  <label>${roles[p]}</label>
+  <input data-n="${p}" value="${esc(S.names[p])}" aria-label="Nome">
+  <div class="row"><input type="time" data-t="${p}0" value="${S.t[p][0]}" aria-label="Entrada">
+  <span>às</span><input type="time" data-t="${p}1" value="${S.t[p][1]}" aria-label="Saída"></div></div>`).join('');
+$('#cfg').oninput=e=>{
+  const n=e.target.dataset.n,t=e.target.dataset.t;
+  if(n!==undefined)S.names[n]=e.target.value||'Sem nome';
+  if(t!==undefined)S.t[t[0]][t[1]]=e.target.value;
+  save();render();
+};
+
+$('#url').value=S.url||'';
+$('#url').onchange=()=>{S.url=$('#url').value.trim();save()};
+$('#up').onclick=async()=>{
+  if(!S.url)return alert('Cole a URL do Apps Script primeiro.');
+  try{await fetch(S.url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(S)});alert('Enviado para a nuvem.')}
+  catch(e){alert('Erro ao salvar: '+e.message)}
+};
+$('#dn').onclick=async()=>{
+  if(!S.url)return alert('Cole a URL do Apps Script primeiro.');
+  try{
+    const j=await (await fetch(S.url)).json();
+    if(!j||!j.names)return alert('Ainda não há dados salvos na nuvem.');
+    S={...j,url:S.url};save();location.reload();
+  }catch(e){alert('Erro ao carregar: '+e.message)}
+};
+
+$('#m').innerHTML=MES.map((x,i)=>`<option value="${i}">${x}</option>`).join('');
+const hoje=new Date();
+$('#y').value=Math.max(2026,hoje.getFullYear());
+$('#m').value=hoje.getFullYear()<2026?0:hoje.getMonth();
+render();
+</script>
+</body>
+</html>
