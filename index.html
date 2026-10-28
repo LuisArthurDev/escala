@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#1f4e8c">
-<title>Escala 5x2 — Multilojas</title>
+<title>Escala Gerencial — Multilojas</title>
 <style>
 :root {
   color-scheme: light;
@@ -172,7 +172,7 @@ section{border-radius:12px;padding:12px;margin-bottom:12px}
 </div>
 <main>
 <header class="page-head">
-  <div><h1>Escala 5x2</h1><p class="subtitle">Escala gerencial, folgas e cobertura diária.</p></div>
+  <div><h1>Escala Gerencial</h1><p class="subtitle">Escala gerencial, folgas e cobertura diária.</p></div>
 </header>
 <section>
   <div id="controls" class="bar">
@@ -474,7 +474,7 @@ function renderConfig(){
  $('#cfg').innerHTML=S.names.map((name,p)=>{
   const role=roles[p]||`Funcionário adicional ${p-3}`;
   return `<div class="person">
-   <label for="name${p}">${esc(role)} — nome</label>
+   <label for="name${p}">${esc(role)}</label>
    <input type="text" id="name${p}" data-n="${p}" value="${esc(name)}" maxlength="100">
    <label>Horário de trabalho</label>
    <div class="time-row">
