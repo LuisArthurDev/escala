@@ -2,315 +2,1457 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Escala Gerencial</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f4e8c">
+<title>Escala Gerencial 5x2</title>
+
 <style>
-:root{--bg:#eef1f5;--fg:#16202b;--card:#fff;--bd:#cfd6df;--ac:#1f4e8c;--off:#f2b8a2;--offt:#7a2a12;--bad:#c62828;--mut:#5d6b7a;--sun:#e3ebf6}
-@media(prefers-color-scheme:dark){:root{--bg:#10161d;--fg:#e8edf3;--card:#18212b;--bd:#2f3c4a;--ac:#7fb0ee;--off:#6e3320;--offt:#ffd9cb;--bad:#ff8a80;--mut:#98a6b5;--sun:#202c3a}}
-*{box-sizing:border-box}
-body{margin:0;padding:16px;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
-main{max-width:960px;margin:auto}
-h1{font-size:1.5rem;margin:0 0 12px}
-h2{font-size:1.05rem;margin:0 0 8px}
-section{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:12px}
-.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-button,select,input{font:inherit;color:inherit;background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:6px 10px}
-button{cursor:pointer}button.pri{background:var(--ac);color:#fff;border-color:var(--ac)}
-:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
-.sc{overflow-x:auto;overflow-y:hidden}
-table{border-collapse:collapse;width:100%;table-layout:fixed}
-th,td{border:1px solid var(--bd);text-align:center;padding:2px 1px;min-width:18px;max-width:20px;font-size:.62rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-th small{color:var(--mut);font-weight:400}
-th.sun{background:var(--sun)}th.bad{color:var(--bad);box-shadow:inset 0 -3px var(--bad)}
-td.nm,th.nm{text-align:left;min-width:120px;max-width:120px;padding:6px 8px;position:sticky;left:0;background:var(--card);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-td.c{cursor:pointer;color:var(--mut)}
-td.c:hover{background:var(--sun)}
-td.off{background:var(--off);color:var(--offt);font-weight:700}
-td.lk{box-shadow:inset 0 0 0 2px var(--ac)}
-.cfg{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
-.cfg div{border:1px solid var(--bd);border-radius:6px;padding:8px;display:grid;gap:6px}
-.cfg label{font-size:.8rem;color:var(--mut)}
-.row{display:flex;gap:6px;align-items:center}
-.row input[type=time]{flex:1}
-ul{margin:0;padding-left:20px}
-.bad-t{color:var(--bad)}
-.mut{color:var(--mut);font-size:.85rem}
-#saveStatus{min-height:1.2em}
-dialog{border:1px solid var(--bad);border-radius:8px;background:var(--card);color:var(--fg);max-width:420px}
-dialog::backdrop{background:#0008}
+:root {
+  color-scheme: light;
+  --bg: #eef2f7;
+  --fg: #182230;
+  --card: #ffffff;
+  --bd: #d6dee8;
+  --ac: #1f4e8c;
+  --ac-hover: #173b6b;
+  --off: #fce4d9;
+  --offt: #8a3218;
+  --bad: #bd2828;
+  --mut: #617084;
+  --sun: #e7eef8;
+  --shadow: 0 5px 18px #1822300d;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #101720;
+    --fg: #e9eff7;
+    --card: #192431;
+    --bd: #334253;
+    --ac: #75aaf0;
+    --ac-hover: #94bdf4;
+    --off: #633522;
+    --offt: #ffe0d1;
+    --bad: #ff8585;
+    --mut: #a7b4c4;
+    --sun: #26374b;
+    --shadow: 0 5px 18px #0002;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 20px;
+  background: var(--bg);
+  color: var(--fg);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+button, input, select {
+  font: inherit;
+}
+
+button, input, select {
+  color: var(--fg);
+}
+
+button {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  background: var(--card);
+  cursor: pointer;
+  transition: background .15s, border-color .15s, transform .15s;
+}
+
+button:hover {
+  border-color: var(--ac);
+}
+
+button:active {
+  transform: scale(.98);
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--ac);
+  outline-offset: 2px;
+}
+
+button.pri {
+  background: var(--ac);
+  color: #fff;
+  border-color: var(--ac);
+}
+
+button.pri:hover {
+  background: var(--ac-hover);
+}
+
+main {
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding-bottom: 68px;
+  min-width: 0;
+}
+
+.page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  line-height: 1.2;
+  letter-spacing: -.035em;
+}
+
+.subtitle {
+  color: var(--mut);
+  margin: 6px 0 0;
+  font-size: .92rem;
+}
+
+section {
+  min-width: 0;
+  margin-bottom: 16px;
+  padding: clamp(12px, 2vw, 20px);
+  border: 1px solid var(--bd);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+h2 {
+  margin: 0;
+  font-size: 1.08rem;
+}
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+#controls {
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+#controls .month-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+select, input {
+  min-height: 40px;
+  max-width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  background: var(--card);
+}
+
+#m {
+  min-width: 135px;
+}
+
+#y {
+  width: 100px;
+}
+
+#clr {
+  white-space: normal;
+}
+
+.mut {
+  color: var(--mut);
+  font-size: .86rem;
+}
+
+.instructions {
+  margin: 0 0 14px;
+  color: var(--mut);
+  font-size: .88rem;
+}
+
+/* A rolagem fica somente dentro desta área. */
+.sc {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+  overscroll-behavior-x: contain;
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+}
+
+#tb {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+#tb th,
+#tb td {
+  width: 43px;
+  min-width: 43px;
+  max-width: 43px;
+  height: 43px;
+  padding: 4px 2px;
+  border: 0;
+  border-right: 1px solid var(--bd);
+  border-bottom: 1px solid var(--bd);
+  text-align: center;
+  white-space: nowrap;
+  font-size: .78rem;
+}
+
+#tb th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 48px;
+  background: var(--sun);
+  font-weight: 700;
+}
+
+#tb th small {
+  display: block;
+  color: var(--mut);
+  font-size: .66rem;
+  font-weight: 500;
+}
+
+#tb th.nm,
+#tb td.nm {
+  position: sticky;
+  left: 0;
+  width: 220px;
+  min-width: 220px;
+  max-width: 220px;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  padding: 8px 12px;
+  background: var(--card);
+  z-index: 3;
+}
+
+#tb th.nm {
+  z-index: 5;
+  background: var(--sun);
+}
+
+#tb td.nm {
+  line-height: 1.35;
+}
+
+#tb td.nm b {
+  display: block;
+}
+
+#tb td.nm small {
+  display: block;
+  margin-top: 3px;
+  color: var(--mut);
+  font-size: .75rem;
+  white-space: normal;
+}
+
+#tb th:last-child,
+#tb td:last-child {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  width: 75px;
+  min-width: 75px;
+  max-width: 75px;
+  background: var(--card);
+  border-left: 1px solid var(--bd);
+  font-weight: 700;
+}
+
+#tb th:last-child {
+  z-index: 4;
+  background: var(--sun);
+}
+
+#tb td.c {
+  cursor: pointer;
+  user-select: none;
+  color: var(--mut);
+  transition: filter .12s;
+}
+
+#tb td.c:hover {
+  filter: brightness(.92);
+}
+
+#tb td.off {
+  background: var(--off);
+  color: var(--offt);
+  font-weight: 800;
+}
+
+#tb td.lk {
+  box-shadow: inset 0 0 0 2px var(--ac);
+}
+
+#tb th.sun {
+  color: var(--bad);
+}
+
+#tb th.bad {
+  box-shadow: inset 0 -3px var(--bad);
+}
+
+#tb tr:last-child td {
+  border-bottom: 0;
+}
+
+#tb th:last-child,
+#tb td:last-child {
+  border-right: 0;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-top: 12px;
+  color: var(--mut);
+  font-size: .82rem;
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend strong {
+  color: var(--fg);
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+ul {
+  margin: 0;
+  padding-left: 22px;
+}
+
+li {
+  overflow-wrap: anywhere;
+}
+
+li + li {
+  margin-top: 7px;
+}
+
+.bad-t {
+  color: var(--bad);
+}
+
+.empty {
+  color: var(--mut);
+}
+
+.cfg {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.person {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  background: var(--bg);
+}
+
+.person label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--mut);
+  font-size: .8rem;
+}
+
+.person input[type="text"] {
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 10px;
+}
+
+.time-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+}
+
+.time-row input {
+  width: 100%;
+  min-width: 0;
+  padding: 7px 4px;
+}
+
+.save-status {
+  padding: 10px 13px;
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  color: var(--mut);
+  background: var(--bg);
+  overflow-wrap: anywhere;
+}
+
+.save-status[data-state="ok"] {
+  color: #187443;
+}
+
+.save-status[data-state="error"] {
+  color: var(--bad);
+}
+
+.save-status[data-state="busy"] {
+  color: var(--ac);
+}
+
+/* Botão flutuante de salvar com ícone. */
+#saveNow {
+  position: fixed;
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 52px;
+  padding: 0 18px;
+  border-radius: 999px;
+  box-shadow: 0 8px 28px #0003;
+}
+
+#saveNow svg {
+  width: 21px;
+  height: 21px;
+  flex: 0 0 auto;
+}
+
+#saveNow:disabled {
+  cursor: wait;
+  opacity: .75;
+}
+
+dialog {
+  width: min(460px, calc(100% - 28px));
+  max-height: 85vh;
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid var(--bd);
+  border-radius: 16px;
+  background: var(--card);
+  color: var(--fg);
+  box-shadow: var(--shadow);
+}
+
+dialog::backdrop {
+  background: #0008;
+}
+
+#dm {
+  margin-bottom: 18px;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 1050px) {
+  .cfg {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #tb th.nm,
+  #tb td.nm {
+    width: 190px;
+    min-width: 190px;
+    max-width: 190px;
+  }
+}
+
+@media (max-width: 650px) {
+  body {
+    padding: 10px;
+  }
+
+  .page-head {
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+
+  section {
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  #controls {
+    align-items: stretch;
+  }
+
+  #controls .month-controls {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) 78px 42px;
+    width: 100%;
+    gap: 6px;
+  }
+
+  #controls .month-controls button {
+    padding: 6px;
+  }
+
+  #m, #y {
+    width: 100%;
+    min-width: 0;
+  }
+
+  #clr {
+    width: 100%;
+  }
+
+  .two-col {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .cfg {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #tb th,
+  #tb td {
+    width: 39px;
+    min-width: 39px;
+    max-width: 39px;
+    height: 41px;
+    font-size: .73rem;
+  }
+
+  #tb th.nm,
+  #tb td.nm {
+    width: 155px;
+    min-width: 155px;
+    max-width: 155px;
+    padding: 7px;
+  }
+
+  #tb th:last-child,
+  #tb td:last-child {
+    width: 57px;
+    min-width: 57px;
+    max-width: 57px;
+  }
+
+  #saveNow {
+    right: max(14px, env(safe-area-inset-right));
+    bottom: max(14px, env(safe-area-inset-bottom));
+    min-height: 50px;
+    padding: 0 15px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
 </style>
 </head>
+
 <body>
 <main>
-<h1>Escala 5x2</h1>
 
-<section>
-  <div class="bar">
-    <button id="pv" aria-label="Mês anterior">◀</button>
-    <select id="m"></select>
-    <input id="y" type="number" min="2026" max="2100" style="width:90px" aria-label="Ano">
-    <button id="nx" aria-label="Próximo mês">▶</button>
-    <button id="clr">Limpar edições do mês</button>
+  <header class="page-head">
+    <div>
+      <h1>Escala 5x2</h1>
+      <p class="subtitle">Escala gerencial, folgas e cobertura diária.</p>
+    </div>
+  </header>
+
+  <section>
+    <div id="controls" class="bar">
+      <div class="month-controls">
+        <button id="pv" aria-label="Mês anterior" title="Mês anterior">◀</button>
+        <select id="m" aria-label="Mês"></select>
+        <input id="y" type="number" min="2026" max="2100"
+               aria-label="Ano">
+        <button id="nx" aria-label="Próximo mês" title="Próximo mês">▶</button>
+      </div>
+
+      <button id="clr">Limpar edições do mês</button>
+    </div>
+
+    <p class="instructions">
+      Clique em um dia para alternar entre folga e trabalho.
+      Os dias seguintes são recalculados. Clique novamente em um
+      dia editado (borda azul) para restaurar o automático.
+    </p>
+
+    <div class="sc" tabindex="0"
+         role="region" aria-label="Tabela mensal da escala">
+      <table id="tb"></table>
+    </div>
+
+    <div class="legend">
+      <span><strong>F</strong> Folga</span>
+      <span><strong>T</strong> Trabalho</span>
+      <span><strong>→G1/G2</strong> Cobertura</span>
+      <span><strong>Borda azul</strong> Edição manual</span>
+    </div>
+  </section>
+
+  <div class="two-col">
+    <section>
+      <div class="section-head">
+        <h2>Próximas folgas</h2>
+      </div>
+      <ul id="nxt"></ul>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>Alertas do mês</h2>
+      </div>
+      <ul id="iss"></ul>
+    </section>
   </div>
-  <p class="mut">Clique em um dia para trocar folga/trabalho. Os dias seguintes são recalculados. Clique de novo em um dia editado (borda azul) para voltar ao automático. F = folga, T = trabalho, →G1/G2 = cobertura.</p>
-  <div class="sc"><table id="tb"></table></div>
-</section>
 
-<section>
-  <h2>Próximas folgas</h2>
-  <ul id="nxt"></ul>
-</section>
+  <section>
+    <div class="section-head">
+      <h2>Funcionários e horários</h2>
+    </div>
+    <div class="cfg" id="cfg"></div>
+  </section>
 
-<section>
-  <h2>Alertas do mês</h2>
-  <ul id="iss"></ul>
-</section>
+  <section>
+    <div class="section-head">
+      <h2>Armazenamento</h2>
+    </div>
+    <div id="saveStatus" class="save-status" data-state="busy"
+         role="status" aria-live="polite">
+      Carregando dados da planilha...
+    </div>
+  </section>
 
-<section>
-  <h2>Funcionários e horários</h2>
-  <div class="cfg" id="cfg"></div>
-</section>
-
-<section>
-  <h2>Armazenamento</h2>
-  <div class="bar" style="justify-content:space-between; width:100%">
-    <button id="saveNow" class="pri">Salvar agora</button>
-    <span id="saveStatus" class="mut">Salvamento automático ativo.</span>
-  </div>
-</section>
 </main>
+
+<button id="saveNow" class="pri" type="button"
+        aria-label="Salvar escala agora" title="Salvar escala agora">
+  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"
+       stroke="currentColor" stroke-width="2"
+       stroke-linecap="round" stroke-linejoin="round">
+    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12l4 4v12a2 2 0 0 1-2 2Z"/>
+    <path d="M17 21v-8H7v8"/>
+    <path d="M7 3v5h8"/>
+  </svg>
+  <span>Salvar</span>
+</button>
 
 <dialog id="dg">
   <div id="dm"></div>
-  <div class="bar" style="justify-content:flex-end">
-    <button id="no">Cancelar</button>
-    <button id="ok" class="pri">Continuar e recalcular</button>
+  <div class="dialog-actions">
+    <button id="no" type="button">Cancelar</button>
+    <button id="ok" class="pri" type="button">
+      Continuar e recalcular
+    </button>
   </div>
 </dialog>
 
 <script>
-const $=s=>document.querySelector(s);
-const MES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-const DN=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-const D0=Date.UTC(2026,0,1)/864e5;
-const KEY='escala5x2v2';
-const APP_SCRIPT_URL='https://script.google.com/macros/s/AKfycbxBJo5T9B-kolCGasn_F4KVQ9g9OneJ7hieB4FpBXra2j3XBa90CIWjpoRo8hXQRmJz/exec';
-let S;
-try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
-S=S||{names:['Gerente Manha','Gerente Geral','Gerente Tarde','Auxiliar'],
- t:[['07:00','15:10'],['09:00','17:00'],['13:00','19:00'],['14:00','23:00']],
- over:[{},{},{},{}],url:''};
+'use strict';
 
-const iso=d=>new Date(d*864e5).toISOString().slice(0,10);
-const wdOf=d=>new Date(d*864e5).getUTCDay();
-const fmt=d=>iso(d).split('-').reverse().slice(0,2).join('/');
-const esc=s=>String(s).replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const shortName=(p)=>{
-  const n=(S.names[p]||'').toLowerCase();
-  if(n.includes('gerente geral'))return 'GG';
-  if(n.includes('gerente manha'))return 'G1';
-  if(n.includes('gerente tarde'))return 'G2';
-  if(n.includes('auxiliar'))return 'A';
-  return (S.names[p]||'').slice(0,2).toUpperCase();
+const $ = s => document.querySelector(s);
+
+const MES = [
+  'Janeiro', 'Fevereiro', 'Março', 'Abril',
+  'Maio', 'Junho', 'Julho', 'Agosto',
+  'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+];
+
+const DN = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+const D0 = Date.UTC(2026, 0, 1) / 864e5;
+const KEY = 'escala5x2v2';
+
+const APP_SCRIPT_URL =
+  'https://script.google.com/macros/s/AKfycbxBJo5T9B-kolCGasn_F4KVQ9g9OneJ7hieB4FpBXra2j3XBa90CIWjpoRo8hXQRmJz/exec';
+
+const BASE = {
+  names: [
+    'Gerente Manha', 'Gerente Geral',
+    'Gerente Tarde', 'Auxiliar'
+  ],
+  t: [
+    ['07:00', '15:10'],
+    ['09:00', '17:00'],
+    ['13:00', '19:00'],
+    ['14:00', '23:00']
+  ],
+  over: [{}, {}, {}, {}],
+  url: ''
 };
 
-const saveLocal=()=>localStorage.setItem(KEY,JSON.stringify(S));
-const setSaveStatus=(msg)=>{ const el=$('#saveStatus'); if(el) el.textContent=msg; };
-async function saveToCloud(){
-  if(!APP_SCRIPT_URL)return;
-  try{
-    await fetch(APP_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(S)});
-    return true;
-  }catch(e){
-    console.warn('Erro ao sincronizar com Apps Script:',e);
-    return false;
-  }
+let S = clone(BASE);
+let saveTimer = null;
+let saveQueue = Promise.resolve();
+let changeVersion = 0;
+let isLoading = true;
+
+function clone(obj) {
+  return JSON.parse(JSON.stringify(obj));
 }
-const save=async()=>{
-  saveLocal();
-  const ok=await saveToCloud();
-  setSaveStatus(ok ? 'Salvo automaticamente.' : 'Salvo no navegador. Falha na nuvem.');
-};
 
-$('#saveNow').onclick=async()=>{
-  setSaveStatus('Salvando...');
-  saveLocal();
-  const ok=await saveToCloud();
-  setSaveStatus(ok ? 'Salvo com sucesso.' : 'Salvo no navegador. Falha na nuvem.');
-};
+const iso = d =>
+  new Date(d * 864e5).toISOString().slice(0, 10);
 
-function normalizeState(raw){
-  const base={names:['Gerente Manha','Gerente Geral','Gerente Tarde','Auxiliar'],t:[['07:00','15:10'],['09:00','17:00'],['13:00','19:00'],['14:00','23:00']],over:[{},{},{},{}],url:''};
-  const next={...base};
-  if(raw&&Array.isArray(raw.names))next.names=raw.names.slice(0,4).map((v,i)=>String(v||base.names[i]));
-  if(raw&&Array.isArray(raw.t))next.t=Array.from({length:4},(_,p)=>{
-    const row=Array.isArray(raw.t[p])?raw.t[p]:base.t[p];
-    return [String(row[0]||base.t[p][0]),String(row[1]||base.t[p][1])];
-  });
-  if(raw&&Array.isArray(raw.over))next.over=Array.from({length:4},(_,p)=>{
-    const src=raw.over[p]&&typeof raw.over[p]==='object'?raw.over[p]:{};
-    const out={};
-    for(const [date,val] of Object.entries(src)){
-      if(typeof date==='string' && (val===1||val===0||val===true||val===false)) out[date]=Number(val);
+const wdOf = d =>
+  new Date(d * 864e5).getUTCDay();
+
+const fmt = d =>
+  iso(d).split('-').reverse().slice(0, 2).join('/');
+
+const esc = s => String(s).replace(/[&<>\"]/g, c => ({
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;'
+}[c]));
+
+function normalizeState(raw) {
+  const next = clone(BASE);
+
+  if (raw && Array.isArray(raw.names)) {
+    for (let i = 0; i < 4; i++) {
+      next.names[i] = String(raw.names[i] || BASE.names[i]);
     }
-    return out;
-  });
-  if(raw&&typeof raw.url==='string')next.url=raw.url;
+  }
+
+  if (raw && Array.isArray(raw.t)) {
+    for (let i = 0; i < 4; i++) {
+      const row = Array.isArray(raw.t[i]) ? raw.t[i] : BASE.t[i];
+
+      next.t[i] = [
+        String(row[0] || BASE.t[i][0]),
+        String(row[1] || BASE.t[i][1])
+      ];
+    }
+  }
+
+  if (raw && Array.isArray(raw.over)) {
+    next.over = Array.from({ length: 4 }, (_, p) => {
+      const src =
+        raw.over[p] && typeof raw.over[p] === 'object'
+          ? raw.over[p]
+          : {};
+
+      const out = {};
+
+      for (const [date, val] of Object.entries(src)) {
+        if (
+          /^\d{4}-\d{2}-\d{2}$/.test(date) &&
+          (val === 1 || val === 0 ||
+           val === true || val === false)
+        ) {
+          out[date] = Number(val);
+        }
+      }
+
+      return out;
+    });
+  }
+
+  if (raw && typeof raw.url === 'string') {
+    next.url = raw.url;
+  }
+
   return next;
 }
 
-async function loadFromCloud(){
-  if(!APP_SCRIPT_URL)return null;
-  try{
-    const r=await fetch(APP_SCRIPT_URL,{method:'GET',cache:'no-store'});
-    if(!r.ok) return null;
-    const text=await r.text();
-    if(!text) return null;
-    const j=JSON.parse(text);
-    if(!j||!j.names) return null;
-    S=normalizeState(j);
-    saveLocal();
-    return S;
-  }catch(e){
-    console.warn('Erro ao carregar do Apps Script:',e);
-    return null;
+function setSaveStatus(message, state = '') {
+  const el = $('#saveStatus');
+  el.textContent = message;
+  el.dataset.state = state;
+}
+
+function saveLocal() {
+  try {
+    localStorage.setItem(KEY, JSON.stringify(S));
+    return true;
+  } catch (err) {
+    console.warn('Não foi possível salvar no navegador:', err);
+    return false;
   }
 }
 
-/* Motor: 0 = Gerente Manha, 1 = Gerente Geral, 2 = Gerente Tarde, 3 = Auxiliar.
-   Cada folga se repete 7 dias depois; uma edição manual muda o ciclo dali em diante. */
-const PREF=[[6,1],[0,3],[5,2],[1,3]];
-function run(end){
-  const B=D0-7,k=[0,0,0,0],pend=[0,0,0,0],R=[[],[],[],[]];
-  for(let d=B;d<=end;d++){
-    const w=wdOf(d),i=d-B,off=[0,0,0,0],lk=[0,0,0,0];
-    if(d>=D0)for(let p=0;p<4;p++){const v=S.over[p][iso(d)];if(v!==undefined){off[p]=v;lk[p]=1;if(v)pend[p]=0}}
-    const reg=()=>off[0]+off[1]+off[2];
-    const l6=p=>{let c=0;for(let j=Math.max(0,i-6);j<i;j++)c+=R[p][j];return c};
-    for(let pass=0;pass<3;pass++)for(let p=0;p<4;p++){
-      if(lk[p]||off[p])continue;
-      if(pass==0){if(k[p]>=5)off[p]=1;continue}
-      const want=pass==1?(pend[p]||(i>=7?R[p][i-7]:PREF[p].includes(w))):(i>=14&&k[p]>=3&&l6(p)<2);
-      if(!want)continue;
-      if(l6(p)>=2){pend[p]=0;continue}
-      if(w==4||(i>0&&R[p][i-1])||(p<3&&reg())){pend[p]=1;continue}
-      off[p]=1;pend[p]=0;
+/*
+ * Faz uma leitura JSONP para evitar a restrição de CORS
+ * que pode bloquear fetch() entre o site e o Apps Script.
+ */
+function loadJSONP(timeoutMs = 15000) {
+  return new Promise((resolve, reject) => {
+    const callbackName =
+      '__escalaCallback_' +
+      Date.now() + '_' +
+      Math.random().toString(36).slice(2);
+
+    const script = document.createElement('script');
+    const timeout = setTimeout(() => {
+      cleanup();
+      reject(new Error('Tempo esgotado ao ler a planilha.'));
+    }, timeoutMs);
+
+    function cleanup() {
+      clearTimeout(timeout);
+      delete window[callbackName];
+      script.remove();
     }
-    for(let p=0;p<4;p++){R[p].push(off[p]);if(off[p])k[p]=0;else k[p]++}
-  }
-  return R.map(a=>a.slice(7));
+
+    window[callbackName] = data => {
+      cleanup();
+
+      if (!data || data.ok === false) {
+        reject(new Error(data?.error || 'Resposta inválida da planilha.'));
+        return;
+      }
+
+      resolve(data);
+    };
+
+    script.onerror = () => {
+      cleanup();
+      reject(new Error('Não foi possível acessar o Apps Script.'));
+    };
+
+    script.src =
+      APP_SCRIPT_URL +
+      '?callback=' + encodeURIComponent(callbackName) +
+      '&_=' + Date.now();
+
+    document.head.appendChild(script);
+  });
 }
-function issues(R,d){
-  const i=d-D0,w=wdOf(d),o=p=>R[p][i],m=[];
-  if(w==4&&(o(0)||o(1)||o(2)||o(3)))m.push('Folga na quinta-feira');
-  if(o(0)+o(1)+o(2)>1)m.push('Duas folgas no mesmo dia');
-  if(w==0&&4-o(0)-o(1)-o(2)-o(3)<2)m.push('Domingo com menos de 2 trabalhando');
-  for(let p=0;p<4;p++){let c=0;for(let j=i;j>=0&&!R[p][j];j--)c++;if(c>5)m.push(S.names[p]+': mais de 5 dias seguidos')}
-  for(let p=0;p<4;p++)if(i>0&&R[p][i]&&R[p][i-1])m.push(S.names[p]+': folgas seguidas');
+
+async function loadFromCloud() {
+  const cloudState = await loadJSONP();
+
+  if (!cloudState || !Array.isArray(cloudState.names)) {
+    throw new Error('A planilha não retornou uma escala válida.');
+  }
+
+  S = normalizeState(cloudState);
+  saveLocal();
+
+  return S;
+}
+
+/*
+ * O POST usa text/plain para evitar preflight CORS.
+ * Como o modo no-cors não expõe a resposta, confirmamos
+ * a gravação lendo novamente os dados da planilha.
+ */
+async function sendCloudSnapshot(snapshot) {
+  const response = await fetch(APP_SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {
+      'Content-Type': 'text/plain;charset=UTF-8'
+    },
+    body: JSON.stringify(snapshot)
+  });
+
+  // A resposta no-cors é opaca. Não a tratamos como
+  // confirmação de gravação.
+  void response;
+
+  const cloudState = await loadJSONP();
+
+  if (JSON.stringify(normalizeState(cloudState)) !==
+      JSON.stringify(normalizeState(snapshot))) {
+    throw new Error(
+      'A gravação não foi confirmada. Tente salvar novamente.'
+    );
+  }
+
+  return true;
+}
+
+function save() {
+  changeVersion++;
+  saveLocal();
+
+  if (isLoading) return;
+
+  setSaveStatus('Alterações pendentes de salvamento...', 'busy');
+
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    saveQueue = saveQueue
+      .catch(() => {})
+      .then(() => saveToCloud());
+  }, 700);
+}
+
+async function saveToCloud() {
+  const versionAtStart = changeVersion;
+  const snapshot = clone(S);
+
+  setSaveStatus('Salvando na planilha...', 'busy');
+  $('#saveNow').disabled = true;
+
+  try {
+    await sendCloudSnapshot(snapshot);
+
+    if (versionAtStart === changeVersion) {
+      setSaveStatus(
+        'Salvo e confirmado no Google Sheets.',
+        'ok'
+      );
+    } else {
+      setSaveStatus(
+        'Uma alteração mais recente ainda precisa ser salva.',
+        'busy'
+      );
+
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => {
+        saveQueue = saveQueue
+          .catch(() => {})
+          .then(() => saveToCloud());
+      }, 300);
+    }
+
+    return true;
+  } catch (err) {
+    console.error('Erro ao salvar na nuvem:', err);
+
+    setSaveStatus(
+      'Não foi possível confirmar o salvamento. Os dados locais foram mantidos.',
+      'error'
+    );
+
+    return false;
+  } finally {
+    $('#saveNow').disabled = false;
+  }
+}
+
+$('#saveNow').addEventListener('click', async () => {
+  clearTimeout(saveTimer);
+
+  saveQueue = saveQueue
+    .catch(() => {})
+    .then(() => saveToCloud());
+
+  await saveQueue;
+});
+
+function shortName(p) {
+  const n = (S.names[p] || '').toLowerCase();
+
+  if (n.includes('gerente geral')) return 'GG';
+  if (n.includes('gerente manha')) return 'G1';
+  if (n.includes('gerente tarde')) return 'G2';
+  if (n.includes('auxiliar')) return 'A';
+
+  return (S.names[p] || '').slice(0, 2).toUpperCase();
+}
+
+/*
+ * Motor da escala original.
+ * Mantido para preservar as regras de cálculo existentes.
+ */
+const PREF = [[6, 1], [0, 3], [5, 2], [1, 3]];
+
+function run(end) {
+  const B = D0 - 7;
+  const k = [0, 0, 0, 0];
+  const pend = [0, 0, 0, 0];
+  const R = [[], [], [], []];
+
+  for (let d = B; d <= end; d++) {
+    const w = wdOf(d);
+    const i = d - B;
+    const off = [0, 0, 0, 0];
+    const lk = [0, 0, 0, 0];
+
+    if (d >= D0) {
+      for (let p = 0; p < 4; p++) {
+        const v = S.over[p][iso(d)];
+
+        if (v !== undefined) {
+          off[p] = v;
+          lk[p] = 1;
+          if (v) pend[p] = 0;
+        }
+      }
+    }
+
+    const reg = () => off[0] + off[1] + off[2];
+
+    const l6 = p => {
+      let c = 0;
+      for (let j = Math.max(0, i - 6); j < i; j++) {
+        c += R[p][j];
+      }
+      return c;
+    };
+
+    for (let pass = 0; pass < 3; pass++) {
+      for (let p = 0; p < 4; p++) {
+        if (lk[p] || off[p]) continue;
+
+        if (pass === 0) {
+          if (k[p] >= 5) off[p] = 1;
+          continue;
+        }
+
+        const want = pass === 1
+          ? (pend[p] || (i >= 7 ? R[p][i - 7] : PREF[p].includes(w)))
+          : (i >= 14 && k[p] >= 3 && l6(p) < 2);
+
+        if (!want) continue;
+
+        if (l6(p) >= 2) {
+          pend[p] = 0;
+          continue;
+        }
+
+        if (
+          w === 4 ||
+          (i > 0 && R[p][i - 1]) ||
+          (p < 3 && reg())
+        ) {
+          pend[p] = 1;
+          continue;
+        }
+
+        off[p] = 1;
+        pend[p] = 0;
+      }
+    }
+
+    for (let p = 0; p < 4; p++) {
+      R[p].push(off[p]);
+      if (off[p]) k[p] = 0;
+      else k[p]++;
+    }
+  }
+
+  return R.map(a => a.slice(7));
+}
+
+function issues(R, d) {
+  const i = d - D0;
+  const w = wdOf(d);
+  const o = p => R[p][i];
+  const m = [];
+
+  if (w === 4 && (o(0) || o(1) || o(2) || o(3))) {
+    m.push('Folga na quinta-feira');
+  }
+
+  if (o(0) + o(1) + o(2) > 1) {
+    m.push('Duas folgas no mesmo dia');
+  }
+
+  if (w === 0 && 4 - o(0) - o(1) - o(2) - o(3) < 2) {
+    m.push('Domingo com menos de 2 trabalhando');
+  }
+
+  for (let p = 0; p < 4; p++) {
+    let c = 0;
+
+    for (let j = i; j >= 0 && !R[p][j]; j--) c++;
+
+    if (c > 5) m.push(S.names[p] + ': mais de 5 dias seguidos');
+  }
+
+  for (let p = 0; p < 4; p++) {
+    if (i > 0 && R[p][i] && R[p][i - 1]) {
+      m.push(S.names[p] + ': folgas seguidas');
+    }
+  }
+
   return m;
 }
-function cov(R,i){
-  const o=p=>R[p][i],u=[0,1,2].filter(o),c={};
-  for(const p of [3,0,1])if(!o(p)&&u.length)c[p]=u.shift();
+
+function cov(R, i) {
+  const o = p => R[p][i];
+  const u = [0, 1, 2].filter(o);
+  const c = {};
+
+  for (const p of [3, 0, 1]) {
+    if (!o(p) && u.length) c[p] = u.shift();
+  }
+
   return c;
 }
 
-function render(){
-  const y=+$('#y').value,m=+$('#m').value;
-  const n=new Date(Date.UTC(y,m+1,0)).getUTCDate(),a=Date.UTC(y,m,1)/864e5,R=run(a+n-1);
-  let h='<tr><th class="nm">Funcionário</th>',all=[];
-  for(let j=0;j<n;j++){
-    const d=a+j,w=wdOf(d),is=issues(R,d);
-    if(is.length)all.push(`<li class="bad-t">${fmt(d)} (${DN[w]}): ${is.join('; ')}</li>`);
-    h+=`<th class="${w==0?'sun ':''}${is.length?'bad':''}" title="${esc(is.join('; '))}">${j+1}<br><small>${DN[w]}</small></th>`;
-  }
-  h+='<th>Folgas</th></tr>';
-  for(let p=0;p<4;p++){
-    h+=`<tr><td class="nm"><b>${esc(S.names[p])}</b><br><small class="mut">${S.t[p][0]}–${S.t[p][1]}</small></td>`;
-    let c=0;
-    for(let j=0;j<n;j++){
-      const d=a+j,i=d-D0,off=R[p][i],lk=S.over[p][iso(d)]!==undefined,cv=off?undefined:cov(R,i)[p];
-      c+=off;
-      const t=cv!==undefined?`Cobre ${esc(S.names[cv])} (${S.t[cv][0]}–${S.t[cv][1]})`:'';
-      const label=off?'F':cv!==undefined?`→${shortName(cv)}`:'T';
-      h+=`<td class="c ${off?'off':''} ${lk?'lk':''}" data-p="${p}" data-d="${d}" title="${t}">${label}</td>`;
-    }
-    h+=`<td><b>${c}</b></td></tr>`;
-  }
-  $('#tb').innerHTML=h;
-  $('#iss').innerHTML=all.join('')||'<li>Nenhum alerta neste mês.</li>';
+function render() {
+  const y = +$('#y').value;
+  const m = +$('#m').value;
 
-  const t=Math.max(D0,Math.floor(Date.now()/864e5)),R2=run(t+60);
-  $('#nxt').innerHTML=[0,1,2,3].map(p=>{
-    for(let d=t;d<=t+60;d++)if(R2[p][d-D0])return `<li><b>${esc(S.names[p])}</b>: ${d==t?'hoje':fmt(d)+' ('+DN[wdOf(d)]+')'}</li>`;
+  const n = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+  const a = Date.UTC(y, m, 1) / 864e5;
+  const R = run(a + n - 1);
+
+  let h = '<tr><th class="nm">Funcionário / Horário</th>';
+  const all = [];
+
+  for (let j = 0; j < n; j++) {
+    const d = a + j;
+    const w = wdOf(d);
+    const alerts = issues(R, d);
+
+    if (alerts.length) {
+      all.push(
+        `<li class="bad-t">${fmt(d)} (${DN[w]}): ` +
+        `${esc(alerts.join('; '))}</li>`
+      );
+    }
+
+    h += `<th class="${w === 0 ? 'sun ' : ''}${alerts.length ? 'bad' : ''}"
+          title="${esc(alerts.join('; '))}">
+          ${j + 1}<small>${DN[w]}</small></th>`;
+  }
+
+  h += '<th>Folgas</th></tr>';
+
+  for (let p = 0; p < 4; p++) {
+    h += `<tr><td class="nm">
+      <b>${esc(S.names[p])}</b>
+      <small>${esc(S.t[p][0])} – ${esc(S.t[p][1])}</small>
+    </td>`;
+
+    let count = 0;
+
+    for (let j = 0; j < n; j++) {
+      const d = a + j;
+      const i = d - D0;
+      const off = R[p][i];
+      const manual = S.over[p][iso(d)] !== undefined;
+      const cv = off ? undefined : cov(R, i)[p];
+
+      count += off;
+
+      const title = cv !== undefined
+        ? `Cobre ${S.names[cv]} (${S.t[cv][0]}–${S.t[cv][1]})`
+        : manual
+          ? 'Edição manual. Clique para restaurar o automático.'
+          : 'Clique para alternar folga/trabalho.';
+
+      const label = off ? 'F' : cv !== undefined
+        ? '→' + shortName(cv)
+        : 'T';
+
+      h += `<td class="c ${off ? 'off' : ''} ${manual ? 'lk' : ''}"
+        data-p="${p}" data-d="${d}"
+        title="${esc(title)}" aria-label="${esc(title)}">${label}</td>`;
+    }
+
+    h += `<td>${count}</td></tr>`;
+  }
+
+  $('#tb').innerHTML = h;
+  $('#iss').innerHTML = all.join('') ||
+    '<li class="empty">Nenhum alerta neste mês.</li>';
+
+  const today = Math.max(D0, Math.floor(Date.now() / 864e5));
+  const R2 = run(today + 60);
+
+  $('#nxt').innerHTML = [0, 1, 2, 3].map(p => {
+    for (let d = today; d <= today + 60; d++) {
+      if (R2[p][d - D0]) {
+        return `<li><b>${esc(S.names[p])}</b>: ${
+          d === today ? 'hoje' : fmt(d) + ' (' + DN[wdOf(d)] + ')'
+        }</li>`;
+      }
+    }
+
     return `<li><b>${esc(S.names[p])}</b>: sem folga nos próximos 60 dias</li>`;
   }).join('');
 }
 
-function modal(msgs,ok,no){
-  $('#dm').innerHTML='<h2>⚠ Esta edição quebra uma regra</h2><ul>'+msgs.map(x=>`<li>${esc(x)}</li>`).join('')+'</ul><p>Se continuar, todas as folgas seguintes serão recalculadas a partir deste dia.</p>';
-  const dg=$('#dg');
-  dg.oncancel=()=>no();
-  $('#ok').onclick=()=>{dg.close();ok()};
-  $('#no').onclick=()=>{dg.close();no()};
+function renderConfig() {
+  const roles = [
+    'Gerente Manhã',
+    'Gerente Geral',
+    'Gerente Tarde',
+    'Auxiliar'
+  ];
+
+  $('#cfg').innerHTML = [0, 1, 2, 3].map(p => `
+    <div class="person">
+      <label for="name${p}">${roles[p]} — nome</label>
+      <input type="text" id="name${p}" data-n="${p}"
+        value="${esc(S.names[p])}" maxlength="100">
+
+      <label>Horário de trabalho</label>
+      <div class="time-row">
+        <input type="time" data-t="${p}0"
+          value="${esc(S.t[p][0])}" aria-label="Entrada ${roles[p]}">
+        <span>às</span>
+        <input type="time" data-t="${p}1"
+          value="${esc(S.t[p][1])}" aria-label="Saída ${roles[p]}">
+      </div>
+    </div>
+  `).join('');
+}
+
+function modal(msgs, ok, no) {
+  $('#dm').innerHTML =
+    '<h2>⚠ Esta edição quebra uma regra</h2><ul>' +
+    msgs.map(x => `<li>${esc(x)}</li>`).join('') +
+    '</ul><p>Se continuar, as folgas seguintes serão recalculadas a partir deste dia.</p>';
+
+  const dg = $('#dg');
+
+  const finish = callback => {
+    dg.close();
+    callback();
+  };
+
+  $('#ok').onclick = () => finish(ok);
+  $('#no').onclick = () => finish(no);
+  dg.oncancel = no;
+
   dg.showModal();
 }
 
-$('#tb').onclick=e=>{
-  const c=e.target.closest('td.c');if(!c)return;
-  const p=+c.dataset.p,d=+c.dataset.d,k=iso(d),o=S.over[p];
-  if(o[k]!==undefined){delete o[k];save();render();return}
-  o[k]=run(d)[p][d-D0]?0:1;
-  const R=run(d+1),i=d-D0,m=issues(R,d),msg=S.names[p]+': folgas seguidas';
-  if(R[p][i]&&R[p][i+1]&&!m.includes(msg))m.push(msg);
-  if(m.length)modal(m,()=>{save();render()},()=>{delete o[k];render()});
-  else{save();render()}
-};
+$('#tb').addEventListener('click', e => {
+  const c = e.target.closest('td.c');
+  if (!c) return;
 
-$('#clr').onclick=()=>{
-  const y=+$('#y').value,m=+$('#m').value,pre=`${y}-${String(m+1).padStart(2,'0')}`;
-  S.over.forEach(o=>Object.keys(o).forEach(k=>{if(k.startsWith(pre))delete o[k]}));
-  save();render();
-};
+  const p = Number(c.dataset.p);
+  const d = Number(c.dataset.d);
+  const key = iso(d);
+  const overrides = S.over[p];
 
-function go(dm){
-  let y=+$('#y').value,m=+$('#m').value+dm;
-  if(m<0){m=11;y--}if(m>11){m=0;y++}
-  if(y<2026){y=2026;m=0}
-  $('#y').value=y;$('#m').value=m;render();
-}
-$('#pv').onclick=()=>go(-1);$('#nx').onclick=()=>go(1);
-$('#m').onchange=()=>go(0);
-$('#y').onchange=()=>{if(+$('#y').value<2026)$('#y').value=2026;go(0)};
-
-const roles=['Gerente Manha','Gerente Geral','Gerente Tarde','Auxiliar'];
-$('#cfg').innerHTML=[0,1,2,3].map(p=>`<div>
-  <label>${roles[p]}</label>
-  <input data-n="${p}" value="${esc(S.names[p])}" aria-label="Nome">
-  <div class="row"><input type="time" data-t="${p}0" value="${S.t[p][0]}" aria-label="Entrada">
-  <span>às</span><input type="time" data-t="${p}1" value="${S.t[p][1]}" aria-label="Saída"></div></div>`).join('');
-$('#cfg').oninput=e=>{
-  const n=e.target.dataset.n,t=e.target.dataset.t;
-  if(n!==undefined)S.names[n]=e.target.value||'Sem nome';
-  if(t!==undefined){
-    const idx=Number(t[0]);
-    const slot=Number(t[1]);
-    S.t[idx][slot]=e.target.value;
+  if (overrides[key] !== undefined) {
+    delete overrides[key];
+    save();
+    render();
+    return;
   }
-  save();render();
-};
 
-$('#m').innerHTML=MES.map((x,i)=>`<option value="${i}">${x}</option>`).join('');
-const hoje=new Date();
-$('#y').value=Math.max(2026,hoje.getFullYear());
-$('#m').value=hoje.getFullYear()<2026?0:hoje.getMonth();
-setSaveStatus('Salvamento automático ativo.');
-(async()=>{
-  if(APP_SCRIPT_URL){
-    await loadFromCloud();
+  overrides[key] = run(d)[p][d - D0] ? 0 : 1;
+
+  const R = run(d + 1);
+  const i = d - D0;
+  const msgs = issues(R, d);
+  const msg = S.names[p] + ': folgas seguidas';
+
+  if (R[p][i] && R[p][i + 1] && !msgs.includes(msg)) {
+    msgs.push(msg);
   }
+
+  if (msgs.length) {
+    modal(
+      msgs,
+      () => {
+        save();
+        render();
+      },
+      () => {
+        delete overrides[key];
+        render();
+      }
+    );
+  } else {
+    save();
+    render();
+  }
+});
+
+$('#clr').addEventListener('click', () => {
+  const y = +$('#y').value;
+  const m = +$('#m').value;
+  const prefix = `${y}-${String(m + 1).padStart(2, '0')}`;
+
+  const hasEdits = S.over.some(o =>
+    Object.keys(o).some(k => k.startsWith(prefix))
+  );
+
+  if (!hasEdits) {
+    setSaveStatus('Não há edições manuais neste mês.', '');
+    return;
+  }
+
+  if (!confirm('Deseja limpar todas as edições manuais deste mês?')) {
+    return;
+  }
+
+  S.over.forEach(o => {
+    Object.keys(o).forEach(k => {
+      if (k.startsWith(prefix)) delete o[k];
+    });
+  });
+
+  save();
   render();
-})();
+});
+
+function go(dm) {
+  let y = +$('#y').value;
+  let m = +$('#m').value + dm;
+
+  if (m < 0) {
+    m = 11;
+    y--;
+  }
+
+  if (m > 11) {
+    m = 0;
+    y++;
+  }
+
+  if (y < 2026) {
+    y = 2026;
+    m = 0;
+  }
+
+  $('#y').value = y;
+  $('#m').value = m;
+  render();
+}
+
+$('#pv').addEventListener('click', () => go(-1));
+$('#nx').addEventListener('click', () => go(1));
+$('#m').addEventListener('change', () => go(0));
+
+$('#y').addEventListener('change', () => {
+  if (+$('#y').value < 2026) $('#y').value = 2026;
+  if (+$('#y').value > 2100) $('#y').value = 2100;
+  go(0);
+});
+
+$('#cfg').addEventListener('input', e => {
+  const target = e.target;
+  const n = target.dataset.n;
+  const t = target.dataset.t;
+
+  if (n !== undefined) {
+    S.names[Number(n)] = target.value || 'Sem nome';
+  }
+
+  if (t !== undefined) {
+    const p = Number(t[0]);
+    const slot = Number(t[1]);
+    S.t[p][slot] = target.value;
+  }
+
+  save();
+  render();
+});
+
+/*
+ * Inicializa o calendário, carrega primeiro a planilha
+ * e só então apresenta os dados definitivos.
+ */
+async function init() {
+  $('#m').innerHTML = MES.map((name, i) =>
+    `<option value="${i}">${name}</option>`
+  ).join('');
+
+  const today = new Date();
+  $('#y').value = Math.max(2026, today.getFullYear());
+  $('#m').value = today.getFullYear() < 2026 ? 0 : today.getMonth();
+
+  isLoading = true;
+  setSaveStatus('Carregando dados da planilha...', 'busy');
+
+  try {
+    await loadFromCloud();
+    setSaveStatus('Dados carregados do Google Sheets.', 'ok');
+  } catch (err) {
+    console.error('Falha ao carregar a planilha:', err);
+
+    /*
+     * Se a nuvem estiver indisponível, usa a cópia local
+     * apenas como alternativa, sem sobrescrever a planilha.
+     */
+    try {
+      const local = localStorage.getItem(KEY);
+
+      if (local) {
+        S = normalizeState(JSON.parse(local));
+        setSaveStatus(
+          'Não foi possível acessar a planilha. Exibindo cópia local; alterações na nuvem não foram confirmadas.',
+          'error'
+        );
+      } else {
+        S = clone(BASE);
+        setSaveStatus(
+          'Não foi possível carregar a planilha. Exibindo escala inicial; não altere dados até restabelecer a conexão.',
+          'error'
+        );
+      }
+    } catch (localErr) {
+      S = clone(BASE);
+      setSaveStatus('Falha ao carregar os dados.', 'error');
+    }
+  } finally {
+    isLoading = false;
+    renderConfig();
+    render();
+  }
+}
+
+init();
 </script>
 </body>
 </html>
