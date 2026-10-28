@@ -463,9 +463,11 @@ function run(end) {
       }
     }
 
-    // Reforço de folgas no fim de semana:
-    // domingo: prioridade para pelo menos 2 folgas normais;
-    // sábado: tentar chegar a 2 quando as regras permitirem.
+    
+    // Reforço de folgas no fim de semana.
+    // Domingo: garantir pelo menos 2 folgas normais sempre que
+    // houver funcionários suficientes que possam ser escalados.
+    // Sábado: tentar alcançar 2 folgas normais quando possível.
     if (w === 0 || w === 6) {
       const meta = 2;
 
@@ -480,14 +482,9 @@ function run(end) {
 
         for (let p = 0; p < total; p++) {
           if (lk[p] || off[p] || ferias[p]) continue;
-
-          // Evita ultrapassar 5 dias consecutivos trabalhando.
           if (k[p] >= 5) continue;
-
-          // Mantém a regra de distribuição das folgas.
           if (l6(p) >= 2) continue;
           if (i > 0 && R[p][i - 1]) continue;
-          if (w === 4) continue;
           if (p < 3 && reg()) continue;
 
           candidatos.push(p);
@@ -495,7 +492,9 @@ function run(end) {
 
         if (!candidatos.length) break;
 
-        // Prioriza quem está há mais tempo trabalhando.
+        // Domingo: primeiro tenta escolher funcionários
+        // cuja folga não viole as restrições da escala.
+        // Sábado: mantém a mesma lógica como preferência.
         candidatos.sort((a, b) => k[b] - k[a]);
 
         const escolhido = candidatos[0];
