@@ -586,12 +586,15 @@ function issues(R, d) {
   }
 
   // Mais de um dos três primeiros funcionários de folga.
-  const folgasGerentes = [0, 1, 2].filter(
-    p => p < total && !emFerias(p) && folga(p)
-  );
-
-  if (folgasGerentes.length > 1) {
-    m.push('Duas folgas no mesmo dia');
+  // Não exibe o alerta de duas folgas no mesmo dia aos domingos.
+  if (w !== 0) {
+    const folgasGerentes = [0, 1, 2].filter(
+      p => p < total && !emFerias(p) && folga(p)
+    );
+  
+    if (folgasGerentes.length > 1) {
+      m.push('Duas folgas no mesmo dia');
+    }
   }
 
   // Domingo: no máximo 2 funcionários disponíveis trabalhando.
