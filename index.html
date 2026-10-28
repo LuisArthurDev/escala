@@ -505,14 +505,47 @@ $('#tb').addEventListener('click',e=>{
  if(msgs.length)modal(msgs,()=>{save();render()},()=>{delete overrides[key];render()});
  else{save();render()}
 });
-$('#clr').addEventListener('click',()=>{
- const y=+$('#y').value,m=+$('#m').value,prefix=`${y}-${String(m+1).padStart(2,'0')}`;
- const hasEdits=S.over.some(o=>Object.keys(o).some(k=>k.startsWith(prefix)));
- if(!hasEdits){setSaveStatus('Não há edições manuais neste mês.','');return}
- if(!confirm('Deseja limpar todas as edições manuais deste mês?'))return;
- S.over.forEach(o=>Object.keys(o).forEach(k=>{if(k.startsWith(prefix))delete o[k]}));
- save();render();
+
+$('#clr').addEventListener('click', () => {
+  const ano = Number($('#y').value);
+  const mes = Number($('#m').value);
+
+  const prefixo = `${ano}-${String(mes + 1).padStart(2, '0')}-`;
+
+  const temEdicoes = S.over.some(overrides =>
+    Object.keys(overrides).some(data => data.startsWith(prefixo))
+  );
+
+  if (!temEdicoes) {
+    alert('Não existem edições manuais neste mês para limpar.');
+    return;
+  }
+
+  if (!confirm(
+    `Deseja limpar todas as edições manuais de ${$('#m').selectedOptions[0].text} de ${ano}?`
+  )) {
+    return;
+  }
+
+  // Remove somente as edições manuais do mês selecionado.
+  S.over.forEach(overrides => {
+    Object.keys(overrides).forEach(data => {
+      if (data.startsWith(prefixo)) {
+        delete overrides[data];
+      }
+    });
+  });
+
+  // Atualiza a tela e agenda o salvamento.
+  render();
+  save();
+
+  setSaveStatus(
+    'Edições do mês removidas. Salvando alterações na planilha...',
+    'busy'
+  );
 });
+
 function go(dm){
  let y=+$('#y').value,m=+$('#m').value+dm;
  if(m<0){m=11;y--}if(m>11){m=0;y++}
