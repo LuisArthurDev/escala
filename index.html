@@ -358,42 +358,168 @@ function shortName(p){
 
   
 const PREF=[[6,1],[0,3],[5,2],[1,3]];
-function run(end){
- const B=D0-7,total=S.names.length;
- const k=Array(total).fill(0),pend=Array(total).fill(0);
- const R=Array.from({length:total},()=>[]);
- for(let d=B;d<=end;d++){
-  const w=wdOf(d),i=d-B;
-  const off=Array(total).fill(0),lk=Array(total).fill(0);
-  if(d>=D0){
-   for(let p=0;p<total;p++){
-    const v=(S.over[p]||{})[iso(d)];
-    if(v!==undefined){off[p]=v;lk[p]=1;if(v)pend[p]=0}
-   }
-   const dateKey=iso(d);
-   for(const v of (S.vacations||[])){
-    if(dateKey>=v.start&&dateKey<=v.end){off[v.p]=1;lk[v.p]=1;pend[v.p]=0}
-   }
+
+function run(end) {
+  const B = D0 - 7;
+  const total = S.names.length;
+
+  const k = Array(total).fill(0);
+  const pend = Array(total).fill(0);
+  const R = Array.from({ length: total }, () => []);
+
+  for (let d = B; d <= end; d++) {
+    const w = wdOf(d);
+    const i = d - B;
+
+    const off = Array(total).fill(0);
+    const lk = Array(total).fill(0);
+    const ferias = Array(total).fill(false);
+
+    if (d >= D0) {
+      const dateKey = iso(d);
+
+      // Preserva as alterações manuais.
+      for (let p = 0; p < total; p++) {
+        const v = (S.over[p] || {})[dateKey];
+
+        if (v !== undefined) {
+          off[p] = v;
+          lk[p] = 1;
+
+          if (v) pend[p] = 0;
+        }
+      }
+
+      // Registra as férias separadamente das folgas normais.
+      for (const v of (S.vacations || [])) {
+        if (
+          dateKey >= v.start &&
+          dateKey <= v.end &&
+          v.p >= 0 &&
+          v.p < total
+        ) {
+          off[v.p] = 1;
+          lk[v.p] = 1;
+          ferias[v.p] = true;
+          pend[v.p] = 0;
+        }
+      }
+    }
+
+    // Conta somente folgas normais dos gerentes.
+    const reg = () =>
+      off.slice(0, Math.min(3, total))
+        .reduce((s, v, p) => s + (v && !ferias[p] ? 1 : 0), 0);
+
+    const l6 = p => {
+      let c = 0;
+
+      for (let j = Math.max(0, i - 6); j < i; j++) {
+        c += R[p][j];
+      }
+
+      return c;
+    };
+
+    // Distribuição normal da escala.
+    for (let pass = 0; pass < 3; pass++) {
+      for (let p = 0; p < total; p++) {
+        if (lk[p] || off[p]) continue;
+
+        if (pass === 0) {
+          if (k[p] >= 5) off[p] = 1;
+          continue;
+        }
+
+        const want = pass === 1
+          ? (
+              pend[p] ||
+              (
+                i >= 7
+                  ? R[p][i - 7]
+                  : (PREF[p] || [p % 7, (p + 3) % 7]).includes(w)
+              )
+            )
+          : (i >= 14 && k[p] >= 3 && l6(p) < 2);
+
+        if (!want) continue;
+
+        if (l6(p) >= 2) {
+          pend[p] = 0;
+          continue;
+        }
+
+        if (
+          w === 4 ||
+          (i > 0 && R[p][i - 1]) ||
+          (p < 3 && reg())
+        ) {
+          pend[p] = 1;
+          continue;
+        }
+
+        off[p] = 1;
+        pend[p] = 0;
+      }
+    }
+
+    // Reforço de folgas no fim de semana:
+    // domingo: prioridade para pelo menos 2 folgas normais;
+    // sábado: tentar chegar a 2 quando as regras permitirem.
+    if (w === 0 || w === 6) {
+      const meta = 2;
+
+      const contarFolgasNormais = () =>
+        off.reduce(
+          (s, v, p) => s + (v && !ferias[p] ? 1 : 0),
+          0
+        );
+
+      while (contarFolgasNormais() < meta) {
+        const candidatos = [];
+
+        for (let p = 0; p < total; p++) {
+          if (lk[p] || off[p] || ferias[p]) continue;
+
+          // Evita ultrapassar 5 dias consecutivos trabalhando.
+          if (k[p] >= 5) continue;
+
+          // Mantém a regra de distribuição das folgas.
+          if (l6(p) >= 2) continue;
+          if (i > 0 && R[p][i - 1]) continue;
+          if (w === 4) continue;
+          if (p < 3 && reg()) continue;
+
+          candidatos.push(p);
+        }
+
+        if (!candidatos.length) break;
+
+        // Prioriza quem está há mais tempo trabalhando.
+        candidatos.sort((a, b) => k[b] - k[a]);
+
+        const escolhido = candidatos[0];
+
+        off[escolhido] = 1;
+        pend[escolhido] = 0;
+      }
+    }
+
+    // Salva o resultado do dia para o cálculo dos próximos dias.
+    for (let p = 0; p < total; p++) {
+      R[p].push(off[p]);
+
+      if (off[p]) {
+        k[p] = 0;
+      } else {
+        k[p]++;
+      }
+    }
   }
-  const reg=()=>off.slice(0,Math.min(3,total)).reduce((a,b)=>a+b,0);
-  const l6=p=>{let c=0;for(let j=Math.max(0,i-6);j<i;j++)c+=R[p][j];return c};
-  for(let pass=0;pass<3;pass++){
-   for(let p=0;p<total;p++){
-    if(lk[p]||off[p])continue;
-    if(pass===0){if(k[p]>=5)off[p]=1;continue}
-    const want=pass===1
-     ?(pend[p]||(i>=7?R[p][i-7]:(PREF[p]||[p%7,(p+3)%7]).includes(w)))
-     :(i>=14&&k[p]>=3&&l6(p)<2);
-    if(!want)continue;
-    if(l6(p)>=2){pend[p]=0;continue}
-    if(w===4||(i>0&&R[p][i-1])||(p<3&&reg())){pend[p]=1;continue}
-    off[p]=1;pend[p]=0;
-   }
-  }
-  for(let p=0;p<total;p++){R[p].push(off[p]);if(off[p])k[p]=0;else k[p]++}
- }
- return R.map(a=>a.slice(7));
+
+  return R.map(a => a.slice(7));
 }
+
 
 function issues(R, d) {
   const i = d - D0;
@@ -409,19 +535,15 @@ function issues(R, d) {
 
   // Folga na quinta-feira: férias não contam como folga da escala.
   if (w === 4) {
-    const temFolgaForaDasFerias = [0, 1, 2, 3].some(p => {
-      if (!R[p][i]) return false;
-  
-      const data = iso(d);
-      const ferias = vacationFor(p, data);
-  
-      return !ferias;
-    });
-  
-    if (temFolgaForaDasFerias) {
-      m.push('Folga na quinta-feira');
-    }
+  const temFolgaNormal = [0, 1, 2, 3].some(p => {
+    const ferias = vacationFor(p, iso(d));
+    return R[p][i] && !ferias;
+  });
+
+  if (temFolgaNormal) {
+    m.push('Folga na quinta-feira');
   }
+}
 
   // Duas folgas entre os três gerentes no mesmo dia.
   const folgasGerentes = [0, 1, 2].filter(
@@ -434,10 +556,17 @@ function issues(R, d) {
 
   // Domingo: funcionários de férias não entram na contagem.
   if (w === 0) {
-    const trabalhando = ativos.filter(p => !folga(p)).length;
-
-    if (trabalhando < 2) {
-      m.push('Domingo com menos de 2 trabalhando');
+    const folgasNormais = [0, 1, 2, 3].filter(p => {
+      const ferias = vacationFor(p, iso(d));
+      return R[p][i] && !ferias;
+    }).length;
+  
+    const funcionariosDisponiveis = [0, 1, 2, 3].filter(
+      p => !vacationFor(p, iso(d))
+    ).length;
+  
+    if (funcionariosDisponiveis >= 2 && folgasNormais < 2) {
+      m.push('Domingo com menos de 2 folgas');
     }
   }
 
