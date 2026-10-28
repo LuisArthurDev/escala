@@ -623,7 +623,6 @@ dialog::backdrop {
   }
 }
 
-
 /* Cabeçalho compacto: Tipo, dia da semana e número do dia. */
 #tb th.dia-cabecalho {
   padding: 4px 1px;
@@ -748,6 +747,81 @@ dialog::backdrop {
   }
 }
 
+/* Estilo da área de cálculo de férias. */
+.vacation-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  align-items: end;
+  gap: 10px;
+}
+
+.vacation-field {
+  min-width: 0;
+}
+
+.vacation-field label {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--mut);
+  font-size: .82rem;
+}
+
+.vacation-field input,
+.vacation-field select {
+  width: 100%;
+  min-width: 0;
+}
+
+.vacation-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.vacation-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  background: var(--bg);
+}
+
+.ferias-cell {
+  background: #fff0b3 !important;
+  color: #704d00 !important;
+  font-weight: 800;
+}
+
+.hora-celula {
+  display: block;
+  font-size: clamp(7px, 0.72vw, 11px);
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+  .vacation-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .vacation-form button {
+    width: 100%;
+  }
+
+  .vacation-item {
+    align-items: flex-start;
+    font-size: 12px;
+  }
+
+  #tb td.c .hora-celula {
+    font-size: 6px;
+  }
+}
 </style>
 </head>
 
@@ -787,9 +861,9 @@ dialog::backdrop {
 
     <div class="legend">
       <span><strong>F</strong> Folga</span>
-      <span><strong>T</strong> Trabalho</span>
-      <span><strong>G1/G2</strong> Cobertura</span>
+      <span><strong>Horário</strong> Turno que será cumprido</span>
       <span><strong>Borda azul</strong> Edição manual</span>
+      <span><strong>Férias</strong> Período bloqueado para trabalho</span>
     </div>
   </section>
 
@@ -814,6 +888,35 @@ dialog::backdrop {
       <h2>Funcionários e horários</h2>
     </div>
     <div class="cfg" id="cfg"></div>
+  </section>
+
+  <section id="feriasSection">
+    <div class="section-head">
+      <h2>Cálculo de férias</h2>
+    </div>
+    <p class="instructions">
+      Selecione o funcionário e o primeiro e último dia das férias.
+      Nesse período, a pessoa ficará marcada como F e a escala será
+      recalculada considerando a ausência.
+    </p>
+    <div class="vacation-form">
+      <div class="vacation-field">
+        <label for="vacPerson">Funcionário</label>
+        <select id="vacPerson"></select>
+      </div>
+      <div class="vacation-field">
+        <label for="vacStart">Data inicial</label>
+        <input id="vacStart" type="date">
+      </div>
+      <div class="vacation-field">
+        <label for="vacEnd">Data final</label>
+        <input id="vacEnd" type="date">
+      </div>
+      <button id="addVacation" class="pri" type="button">
+        Calcular férias
+      </button>
+    </div>
+    <div id="vacationList" class="vacation-list"></div>
   </section>
 
   <section>
@@ -879,6 +982,7 @@ const BASE = {
     ['14:00', '23:00']
   ],
   over: [{}, {}, {}, {}],
+  vacations: [],
   url: ''
 };
 
@@ -901,14 +1005,13 @@ const wdOf = d =>
 const fmt = d =>
   iso(d).split('-').reverse().slice(0, 2).join('/');
 
-const esc = s => String(s).replace(/[&<>\"]/g, c => ({
+const esc = s => String(s).replace(/[&<>"]/g, c => ({
   '&': '&amp;',
   '<': '&lt;',
   '>': '&gt;',
   '"': '&quot;'
 }[c]));
-
-function normalizeState(raw) {
+  function normalizeState(raw) {
   const next = clone(BASE);
 
   if (raw && Array.isArray(raw.names)) {
@@ -949,6 +1052,20 @@ function normalizeState(raw) {
 
       return out;
     });
+  }
+
+  if (raw && Array.isArray(raw.vacations)) {
+    next.vacations = raw.vacations.filter(v =>
+      v && Number.isInteger(Number(v.p)) &&
+      Number(v.p) >= 0 && Number(v.p) < 4 &&
+      /^\d{4}-\d{2}-\d{2}$/.test(String(v.start || '')) &&
+      /^\d{4}-\d{2}-\d{2}$/.test(String(v.end || '')) &&
+      String(v.start) <= String(v.end)
+    ).map(v => ({
+      p: Number(v.p),
+      start: String(v.start),
+      end: String(v.end)
+    }));
   }
 
   if (raw && typeof raw.url === 'string') {
@@ -1146,8 +1263,7 @@ function shortName(p) {
 
   return (S.names[p] || '').slice(0, 2).toUpperCase();
 }
-
-/*
+  /*
  * Motor da escala original.
  * Mantido para preservar as regras de cálculo existentes.
  */
@@ -1173,6 +1289,16 @@ function run(end) {
           off[p] = v;
           lk[p] = 1;
           if (v) pend[p] = 0;
+        }
+      }
+
+      const dateKey = iso(d);
+
+      for (const v of (S.vacations || [])) {
+        if (dateKey >= v.start && dateKey <= v.end) {
+          off[v.p] = 1;
+          lk[v.p] = 1;
+          pend[v.p] = 0;
         }
       }
     }
@@ -1278,6 +1404,16 @@ function cov(R, i) {
   return c;
 }
 
+function vacationFor(p, dateKey) {
+  return (S.vacations || []).find(v =>
+    v.p === p && dateKey >= v.start && dateKey <= v.end
+  );
+}
+
+function timeLabel(p) {
+  return `${S.t[p][0]}<br>${S.t[p][1]}`;
+}
+
 function render() {
   const y = +$('#y').value;
   const m = +$('#m').value;
@@ -1303,6 +1439,7 @@ function render() {
 
     h += `<th class="dia-cabecalho ${w === 0 ? 'sun ' : ''}${alerts.length ? 'bad' : ''}"
           title="${esc(alerts.join('; '))}">
+          <span class="tipo-dia">Tipo</span>
           <span class="nome-dia">${DN[w]}</span>
           <span class="numero-dia">${String(j + 1).padStart(2, '0')}</span>
         </th>`;
@@ -1322,22 +1459,31 @@ function render() {
       const d = a + j;
       const i = d - D0;
       const off = R[p][i];
-      const manual = S.over[p][iso(d)] !== undefined;
+      const dateKey = iso(d);
+      const vacation = vacationFor(p, dateKey);
+      const manual = S.over[p][dateKey] !== undefined;
       const cv = off ? undefined : cov(R, i)[p];
 
       count += off;
 
-      const title = cv !== undefined
-        ? `Cobre ${S.names[cv]} (${S.t[cv][0]}–${S.t[cv][1]})`
-        : manual
-          ? 'Edição manual. Clique para restaurar o automático.'
-          : 'Clique para alternar folga/trabalho.';
+      const shiftPerson = cv !== undefined ? cv : p;
+      const shiftHours = `${S.t[shiftPerson][0]}–${S.t[shiftPerson][1]}`;
 
-      const label = off ? 'F' : cv !== undefined
-        ? '' + shortName(cv)
-        : 'T';
+      const title = vacation
+        ? `Férias de ${S.names[p]} (${vacation.start} a ${vacation.end})`
+        : off
+          ? 'Folga. Clique para alternar folga/trabalho.'
+          : cv !== undefined
+            ? `${S.names[p]} cobre o horário de ${S.names[cv]}: ${shiftHours}`
+            : `Horário de trabalho: ${shiftHours}`;
 
-      h += `<td class="c ${off ? 'off' : ''} ${manual ? 'lk' : ''}"
+      const label = off
+        ? 'F'
+        : `<span class="hora-celula">${timeLabel(shiftPerson)}</span>`;
+
+      const vacationClass = vacation ? 'ferias-cell' : '';
+
+      h += `<td class="c ${off ? 'off' : ''} ${manual ? 'lk' : ''} ${vacationClass}"
         data-p="${p}" data-d="${d}"
         title="${esc(title)}" aria-label="${esc(title)}">${label}</td>`;
     }
@@ -1365,6 +1511,31 @@ function render() {
   }).join('');
 }
 
+function renderVacationControls() {
+  const select = $('#vacPerson');
+  const previous = select.value;
+
+  select.innerHTML = S.names.map((name, p) =>
+    `<option value="${p}">${esc(name)}</option>`
+  ).join('');
+
+  if (previous !== '' && [...select.options].some(o => o.value === previous)) {
+    select.value = previous;
+  }
+
+  const list = $('#vacationList');
+  const vacations = (S.vacations || []).slice().sort((a, b) =>
+    a.start.localeCompare(b.start)
+  );
+
+  list.innerHTML = vacations.length ? vacations.map((v, i) => `
+    <div class="vacation-item">
+      <span><b>${esc(S.names[v.p])}</b> — ${esc(v.start.split('-').reverse().join('/'))} até ${esc(v.end.split('-').reverse().join('/'))}</span>
+      <button type="button" data-remove-vacation="${i}">Excluir</button>
+    </div>
+  `).join('') : '<p class="empty">Nenhum período de férias cadastrado.</p>';
+}
+
 function renderConfig() {
   const roles = [
     'Gerente Manhã',
@@ -1390,8 +1561,7 @@ function renderConfig() {
     </div>
   `).join('');
 }
-
-function modal(msgs, ok, no) {
+  function modal(msgs, ok, no) {
   $('#dm').innerHTML =
     '<h2>⚠ Esta edição quebra uma regra</h2><ul>' +
     msgs.map(x => `<li>${esc(x)}</li>`).join('') +
@@ -1419,6 +1589,14 @@ $('#tb').addEventListener('click', e => {
   const d = Number(c.dataset.d);
   const key = iso(d);
   const overrides = S.over[p];
+
+  if (vacationFor(p, key)) {
+    setSaveStatus(
+      'Esse dia está dentro do período de férias e não pode ser editado manualmente.',
+      ''
+    );
+    return;
+  }
 
   if (overrides[key] !== undefined) {
     delete overrides[key];
@@ -1534,6 +1712,59 @@ $('#cfg').addEventListener('input', e => {
   }
 
   save();
+  renderVacationControls();
+  render();
+});
+
+$('#addVacation').addEventListener('click', () => {
+  const p = Number($('#vacPerson').value);
+  const start = $('#vacStart').value;
+  const end = $('#vacEnd').value;
+
+  if (!start || !end) {
+    alert('Selecione a data inicial e a data final das férias.');
+    return;
+  }
+
+  if (start > end) {
+    alert('A data inicial não pode ser posterior à data final.');
+    return;
+  }
+
+  if (S.vacations.some(v =>
+    v.p === p && start <= v.end && end >= v.start
+  )) {
+    alert('Esse período se sobrepõe a férias já cadastradas para esse funcionário.');
+    return;
+  }
+
+  S.vacations.push({ p, start, end });
+  S.vacations.sort((a, b) => a.start.localeCompare(b.start));
+  $('#vacStart').value = '';
+  $('#vacEnd').value = '';
+  save();
+  renderVacationControls();
+  render();
+});
+
+$('#vacationList').addEventListener('click', e => {
+  const button = e.target.closest('[data-remove-vacation]');
+  if (!button) return;
+
+  const visible = (S.vacations || []).slice().sort((a, b) =>
+    a.start.localeCompare(b.start)
+  );
+
+  const item = visible[Number(button.dataset.removeVacation)];
+  if (!item) return;
+
+  if (!confirm(
+    `Excluir as férias de ${S.names[item.p]} de ${item.start} até ${item.end}?`
+  )) return;
+
+  S.vacations = S.vacations.filter(v => v !== item);
+  save();
+  renderVacationControls();
   render();
 });
 
@@ -1586,6 +1817,7 @@ async function init() {
   } finally {
     isLoading = false;
     renderConfig();
+    renderVacationControls();
     render();
   }
 }
