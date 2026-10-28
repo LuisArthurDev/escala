@@ -427,7 +427,7 @@ function render(){
   const d=a+j,w=wdOf(d),alerts=issues(R,d);
   if(alerts.length)all.push(`<li class="bad-t">${fmt(d)} (${DN[w]}): ${esc(alerts.join('; '))}</li>`);
   h+=`<th class="dia-cabecalho ${w===0?'sun ':''}${alerts.length?'bad':''}" title="${esc(alerts.join('; '))}">
-  <span class="tipo-dia">Tipo</span><span class="nome-dia">${DN[w]}</span>
+  <span class="nome-dia">${DN[w]}</span>
   <span class="numero-dia">${String(j+1).padStart(2,'0')}</span></th>`;
  }
  h+='<th>Folgas</th></tr>';
