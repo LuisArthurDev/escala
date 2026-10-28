@@ -210,88 +210,99 @@ select, input {
 .sc {
   width: 100%;
   max-width: 100%;
-  overflow-x: auto;
-  overflow-y: auto;
-  overscroll-behavior-x: contain;
+  overflow: visible;
   border: 1px solid var(--bd);
   border-radius: 10px;
-  scrollbar-gutter: stable;
-  -webkit-overflow-scrolling: touch;
 }
 
 #tb {
-  width: max-content;
-  min-width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
+  width: 100%;
+  min-width: 0;
   table-layout: fixed;
+  border-collapse: collapse;
 }
 
 #tb th,
 #tb td {
-  width: 43px;
-  min-width: 43px;
-  max-width: 43px;
-  height: 43px;
-  padding: 4px 2px;
-  border: 0;
-  border-right: 1px solid var(--bd);
-  border-bottom: 1px solid var(--bd);
+  width: auto;
+  min-width: 0;
+  max-width: none;
+  height: auto;
+  min-height: 36px;
+  padding: 5px 1px;
   text-align: center;
-  white-space: nowrap;
-  font-size: .78rem;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-size: clamp(9px, 0.8vw, 12px);
+  border: 1px solid var(--bd);
 }
 
 #tb th {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  height: 48px;
+  position: static;
   background: var(--sun);
-  font-weight: 700;
-}
-
-#tb th small {
-  display: block;
-  color: var(--mut);
-  font-size: .66rem;
-  font-weight: 500;
 }
 
 #tb th.nm,
 #tb td.nm {
-  position: sticky;
-  left: 0;
-  width: 220px;
-  min-width: 220px;
-  max-width: 220px;
+  position: static;
+  width: 155px;
+  min-width: 0;
+  max-width: none;
+  padding: 6px;
   text-align: left;
   white-space: normal;
   overflow-wrap: anywhere;
-  padding: 8px 12px;
-  background: var(--card);
-  z-index: 3;
 }
 
-#tb th.nm {
-  z-index: 5;
-  background: var(--sun);
+#tb th:last-child,
+#tb td:last-child {
+  position: static;
+  width: 48px;
+  min-width: 0;
+  max-width: none;
+  border-left: 1px solid var(--bd);
 }
 
-#tb td.nm {
-  line-height: 1.35;
+#tb td.off {
+  background: var(--off);
+  color: var(--offt);
+  font-weight: 800;
 }
 
-#tb td.nm b {
-  display: block;
-}
+@media (max-width: 700px) {
+  body {
+    padding: 6px;
+  }
 
-#tb td.nm small {
-  display: block;
-  margin-top: 3px;
-  color: var(--mut);
-  font-size: .75rem;
-  white-space: normal;
+  section {
+    padding: 8px;
+  }
+
+  #tb th.nm,
+  #tb td.nm {
+    width: 78px;
+    padding: 3px;
+    font-size: 9px;
+  }
+
+  #tb th:last-child,
+  #tb td:last-child {
+    width: 30px;
+  }
+
+  #tb th,
+  #tb td {
+    padding: 4px 0;
+    font-size: 9px;
+  }
+
+  #tb th small {
+    font-size: 8px;
+  }
+
+  #tb td.nm small {
+    font-size: 8px;
+  }
 }
 
 #tb th:last-child,
@@ -728,8 +739,7 @@ const DN = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const D0 = Date.UTC(2026, 0, 1) / 864e5;
 const KEY = 'escala5x2v2';
 
-const APP_SCRIPT_URL =
-  'https://script.google.com/macros/s/AKfycbxBJo5T9B-kolCGasn_F4KVQ9g9OneJ7hieB4FpBXra2j3XBa90CIWjpoRo8hXQRmJz/exec';
+const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxBJo5T9B-kolCGasn_F4KVQ9g9OneJ7hieB4FpBXra2j3XBa90CIWjpoRo8hXQRmJz/exec';
 
 const BASE = {
   names: [
