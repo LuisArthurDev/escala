@@ -51,7 +51,7 @@ dialog::backdrop{background:#0008}
     <button id="nx" aria-label="Próximo mês">▶</button>
     <button id="clr">Limpar edições do mês</button>
   </div>
-  <p class="mut">Clique em um dia para trocar folga/trabalho. Os dias seguintes são recalculados. Clique de novo em um dia editado (borda azul) para voltar ao automático. F = folga, →X = cobrindo a folga de X.</p>
+  <p class="mut">Clique em um dia para trocar folga/trabalho. Os dias seguintes são recalculados. Clique de novo em um dia editado (borda azul) para voltar ao automático. F = folga, →X = cobrindo ...</p>
   <div class="sc"><table id="tb"></table></div>
 </section>
 
@@ -72,11 +72,11 @@ dialog::backdrop{background:#0008}
 
 <section>
   <h2>Armazenamento</h2>
-  <p class="mut">Os dados ficam salvos neste navegador. Para guardar na nuvem, cole a URL do Apps Script (Web App).</p>
+  <p class="mut">Os dados ficam salvos neste navegador. Para guardar backup em arquivo, use exportar/importar em JSON. A sincronização com Apps Script fica escondida no código.</p>
   <div class="bar">
-    <input id="url" placeholder="https://script.google.com/macros/s/.../exec" style="flex:1;min-width:240px">
-    <button id="up" class="pri">Salvar na nuvem</button>
-    <button id="dn">Carregar da nuvem</button>
+    <button id="ex" class="pri">Exportar escala</button>
+    <button id="im">Importar escala</button>
+    <input id="fi" type="file" accept="application/json" hidden>
   </div>
 </section>
 </main>
@@ -95,6 +95,7 @@ const MES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto
 const DN=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 const D0=Date.UTC(2026,0,1)/864e5;
 const KEY='escala5x2v2';
+const APP_SCRIPT_URL='https://script.google.com/macros/s/SEU_ID_DO_APPS_SCRIPT/exec';
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 S=S||{names:['Gerente Geral','Gerente 1','Gerente 2','Auxiliar'],
@@ -104,8 +105,72 @@ S=S||{names:['Gerente Geral','Gerente 1','Gerente 2','Auxiliar'],
 const iso=d=>new Date(d*864e5).toISOString().slice(0,10);
 const wdOf=d=>new Date(d*864e5).getUTCDay();
 const fmt=d=>iso(d).split('-').reverse().slice(0,2).join('/');
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc=s=>String(s).replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const save=()=>localStorage.setItem(KEY,JSON.stringify(S));
+
+function normalizeState(raw){
+  const base={names:['Gerente Geral','Gerente 1','Gerente 2','Auxiliar'],t:[['09:00','18:00'],['12:00','21:00'],['08:00','17:00'],['08:00','17:00']],over:[{},{},{},{}],url:''};
+  const next={...base};
+  if(raw&&Array.isArray(raw.names))next.names=raw.names.slice(0,4).map((v,i)=>String(v||base.names[i]));
+  if(raw&&Array.isArray(raw.t))next.t=Array.from({length:4},(_,p)=>{
+    const row=Array.isArray(raw.t[p])?raw.t[p]:base.t[p];
+    return [String(row[0]||base.t[p][0]),String(row[1]||base.t[p][1])];
+  });
+  if(raw&&Array.isArray(raw.over))next.over=Array.from({length:4},(_,p)=>{
+    const src=raw.over[p]&&typeof raw.over[p]==='object'?raw.over[p]:{};
+    const out={};
+    for(const [date,val] of Object.entries(src)){
+      if(typeof date==='string' && (val===1||val===0||val===true||val===false)) out[date]=Number(val);
+    }
+    return out;
+  });
+  if(raw&&typeof raw.url==='string')next.url=raw.url;
+  return next;
+}
+
+async function saveToCloud(){
+  if(!APP_SCRIPT_URL||APP_SCRIPT_URL.includes('SEU_ID_DO_APPS_SCRIPT'))return alert('Apps Script não configurado no código.');
+  try{await fetch(APP_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(S)});alert('Enviado para a nuvem.');}
+  catch(e){alert('Erro ao salvar: '+e.message)}
+}
+
+async function loadFromCloud(){
+  if(!APP_SCRIPT_URL||APP_SCRIPT_URL.includes('SEU_ID_DO_APPS_SCRIPT'))return alert('Apps Script não configurado no código.');
+  try{
+    const j=await (await fetch(APP_SCRIPT_URL)).json();
+    if(!j||!j.names)return alert('Ainda não há dados salvos na nuvem.');
+    S={...normalizeState(j),url:APP_SCRIPT_URL};save();location.reload();
+  }catch(e){alert('Erro ao carregar: '+e.message)}
+}
+
+function exportEscala(){
+  const payload={version:2,exportedAt:new Date().toISOString(),names:S.names,t:S.t,over:S.over,url:APP_SCRIPT_URL};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  const fileName=`escala-5x2-${new Date().toISOString().slice(0,10)}.json`;
+  a.href=URL.createObjectURL(blob);
+  a.download=fileName;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function importEscala(event){
+  const [file]=event.target.files||[];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const parsed=JSON.parse(String(reader.result));
+      S=normalizeState(parsed);
+      save();
+      location.reload();
+    }catch(err){
+      alert('Arquivo inválido. Escolha um JSON exportado pela escala.');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value='';
+}
 
 /* Motor: 0 = Gerente Geral, 1 = Gerente 1, 2 = Gerente 2, 3 = Auxiliar.
    Cada folga se repete 7 dias depois; uma edição manual muda o ciclo dali em diante. */
@@ -221,30 +286,21 @@ $('#cfg').innerHTML=[0,1,2,3].map(p=>`<div>
 $('#cfg').oninput=e=>{
   const n=e.target.dataset.n,t=e.target.dataset.t;
   if(n!==undefined)S.names[n]=e.target.value||'Sem nome';
-  if(t!==undefined)S.t[t[0]][t[1]]=e.target.value;
+  if(t!==undefined){
+    const idx=Number(t[0]);
+    const slot=Number(t[1]);
+    S.t[idx][slot]=e.target.value;
+  }
   save();render();
-};
-
-$('#url').value=S.url||'';
-$('#url').onchange=()=>{S.url=$('#url').value.trim();save()};
-$('#up').onclick=async()=>{
-  if(!S.url)return alert('Cole a URL do Apps Script primeiro.');
-  try{await fetch(S.url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(S)});alert('Enviado para a nuvem.')}
-  catch(e){alert('Erro ao salvar: '+e.message)}
-};
-$('#dn').onclick=async()=>{
-  if(!S.url)return alert('Cole a URL do Apps Script primeiro.');
-  try{
-    const j=await (await fetch(S.url)).json();
-    if(!j||!j.names)return alert('Ainda não há dados salvos na nuvem.');
-    S={...j,url:S.url};save();location.reload();
-  }catch(e){alert('Erro ao carregar: '+e.message)}
 };
 
 $('#m').innerHTML=MES.map((x,i)=>`<option value="${i}">${x}</option>`).join('');
 const hoje=new Date();
 $('#y').value=Math.max(2026,hoje.getFullYear());
 $('#m').value=hoje.getFullYear()<2026?0:hoje.getMonth();
+$('#ex').onclick=exportEscala;
+$('#im').onclick=()=>$('#fi').click();
+$('#fi').onchange=importEscala;
 render();
 </script>
 </body>
