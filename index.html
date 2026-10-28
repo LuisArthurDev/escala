@@ -394,19 +394,96 @@ function run(end){
  }
  return R.map(a=>a.slice(7));
 }
-function issues(R,d){
- const i=d-D0,w=wdOf(d),o=p=>R[p][i],m=[];
- if(w===4&&R.some((_,p)=>o(p)))m.push('Folga na quinta-feira');
- if(R.slice(0,3).reduce((sum,_,p)=>sum+o(p),0)>1)m.push('Duas folgas no mesmo dia');
- if(w===0&&R.length-R.reduce((sum,_,p)=>sum+o(p),0)<2)m.push('Domingo com menos de 2 trabalhando');
- for(let p=0;p<S.names.length;p++){
-  let c=0;for(let j=i;j>=0&&!R[p][j];j--)c++;
-  if(c>5)m.push(S.names[p]+': mais de 5 dias seguidos');
- }
- for(let p=0;p<S.names.length;p++){
-  if(i>0&&R[p][i]&&R[p][i-1])m.push(S.names[p]+': folgas seguidas');
- }
- return m;
+function issues(R, d) {
+  const i = d - D0;
+  const w = wdOf(d);
+  const o = p => R[p][i];
+  const m = [];
+
+  // Verifica se o funcionário está de férias na data.
+  function emFerias(p, data) {
+    const ferias = S.vacations?.[p];
+
+    if (!ferias) return false;
+
+    // Aceita um ou vários períodos de férias.
+    const periodos = Array.isArray(ferias[0])
+      ? ferias
+      : [ferias];
+
+    const dataAtual = new Date(data);
+    dataAtual.setHours(0, 0, 0, 0);
+
+    return periodos.some(periodo => {
+      if (!periodo || periodo.length < 2) return false;
+
+      const inicio = new Date(periodo[0]);
+      const fim = new Date(periodo[1]);
+
+      if (isNaN(inicio.getTime()) || isNaN(fim.getTime())) {
+        return false;
+      }
+
+      inicio.setHours(0, 0, 0, 0);
+      fim.setHours(0, 0, 0, 0);
+
+      return dataAtual >= inicio && dataAtual <= fim;
+    });
+  }
+
+  // Não gera alertas de escala no dia em que todos os
+  // funcionários relevantes estão de férias.
+  const trabalhandoOuEscalados = S.names
+    .map((_, p) => p)
+    .filter(p => !emFerias(p, d));
+
+  // Folga na quinta-feira: ignora funcionários de férias.
+  if (
+    w === 4 &&
+    trabalhandoOuEscalados.some(p => o(p))
+  ) {
+    m.push('Folga na quinta-feira');
+  }
+
+  // Duas folgas no mesmo dia: considera apenas quem não está de férias.
+  const folgas = trabalhandoOuEscalados
+    .filter(p => p < 3 && o(p));
+
+  if (folgas.length > 1) {
+    m.push('Duas folgas no mesmo dia');
+  }
+
+  // Domingo com menos de 2 trabalhando:
+  // funcionários de férias não entram na contagem.
+  if (w === 0) {
+    const trabalhando = trabalhandoOuEscalados
+      .filter(p => !o(p)).length;
+
+    if (trabalhando < 2) {
+      m.push('Domingo com menos de 2 trabalhando');
+    }
+  }
+
+  // Regras individuais: não gerar alertas para quem está de férias.
+  for (let p = 0; p < S.names.length; p++) {
+    if (emFerias(p, d)) continue;
+
+    let c = 0;
+
+    for (let j = i; j >= 0 && !R[p][j]; j--) {
+      c++;
+    }
+
+    if (c > 5) {
+      m.push(S.names[p] + ': mais de 5 dias seguidos');
+    }
+
+    if (i > 0 && R[p][i] && R[p][i - 1]) {
+      m.push(S.names[p] + ': folgas seguidas');
+    }
+  }
+
+  return m;
 }
 function cov(R,i){
  const o=p=>R[p][i],u=[0,1,2].filter(o),c={};
