@@ -432,7 +432,7 @@ function render(){
  }
  h+='<th>Folgas</th></tr>';
  for(let p=0;p<S.names.length;p++){
-  h+=`<tr><td class="nm"><b>${esc(S.names[p])}</b><small>${esc(S.t[p][0])} – ${esc(S.t[p][1])}</small></td>`;
+  h+=`<tr><td class="nm"><b>${esc(S.names[p])}</b></br><small>${esc(S.t[p][0])} – ${esc(S.t[p][1])}</small></td>`;
   let count=0;
   for(let j=0;j<n;j++){
    const d=a+j,i=d-D0,off=R[p][i],dateKey=iso(d);
