@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Escala 5x2</title>
+<title>Escala Gerencial</title>
 <style>
 :root{--bg:#eef1f5;--fg:#16202b;--card:#fff;--bd:#cfd6df;--ac:#1f4e8c;--off:#f2b8a2;--offt:#7a2a12;--bad:#c62828;--mut:#5d6b7a;--sun:#e3ebf6}
 @media(prefers-color-scheme:dark){:root{--bg:#10161d;--fg:#e8edf3;--card:#18212b;--bd:#2f3c4a;--ac:#7fb0ee;--off:#6e3320;--offt:#ffd9cb;--bad:#ff8a80;--mut:#98a6b5;--sun:#202c3a}}
@@ -85,11 +85,11 @@ const MES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto
 const DN=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 const D0=Date.UTC(2026,0,1)/864e5;
 const KEY='escala5x2v2';
-const APP_SCRIPT_URL='https://script.google.com/macros/s/SEU_ID_DO_APPS_SCRIPT/exec';
+const APP_SCRIPT_URL='https://script.google.com/macros/s/AKfycbxBJo5T9B-kolCGasn_F4KVQ9g9OneJ7hieB4FpBXra2j3XBa90CIWjpoRo8hXQRmJz/exec';
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
-S=S||{names:['Gerente Geral','Gerente 1','Gerente 2','Auxiliar'],
- t:[['09:00','18:00'],['12:00','21:00'],['08:00','17:00'],['08:00','17:00']],
+S=S||{names:['Gerente Manha','Gerente Geral','Gerente Tarde','Auxiliar'],
+ t:[['07:00','15:10'],['09:00','17:00'],['13:00','19:00'],['14:00','23:00']],
  over:[{},{},{},{}],url:''};
 
 const iso=d=>new Date(d*864e5).toISOString().slice(0,10);
@@ -99,15 +99,15 @@ const esc=s=>String(s).replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 const shortName=(p)=>{
   const n=(S.names[p]||'').toLowerCase();
   if(n.includes('gerente geral'))return 'GG';
-  if(n.includes('gerente 1'))return 'G1';
-  if(n.includes('gerente 2'))return 'G2';
+  if(n.includes('gerente manha'))return 'G1';
+  if(n.includes('gerente tarde'))return 'G2';
   if(n.includes('auxiliar'))return 'A';
   return (S.names[p]||'').slice(0,2).toUpperCase();
 };
 
 const saveLocal=()=>localStorage.setItem(KEY,JSON.stringify(S));
 async function saveToCloud(){
-  if(!APP_SCRIPT_URL||APP_SCRIPT_URL.includes('SEU_ID_DO_APPS_SCRIPT'))return;
+  if(!APP_SCRIPT_URL||APP_SCRIPT_URL.includes('AKfycbxBJo5T9B-kolCGasn_F4KVQ9g9OneJ7hieB4FpBXra2j3XBa90CIWjpoRo8hXQRmJz'))return;
   try{
     await fetch(APP_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(S)});
   }catch(e){console.warn('Erro ao sincronizar com Apps Script:',e);}
@@ -115,7 +115,7 @@ async function saveToCloud(){
 const save=()=>{saveLocal(); saveToCloud();};
 
 function normalizeState(raw){
-  const base={names:['Gerente Geral','Gerente 1','Gerente 2','Auxiliar'],t:[['09:00','18:00'],['12:00','21:00'],['08:00','17:00'],['08:00','17:00']],over:[{},{},{},{}],url:''};
+  const base={names:['Gerente Manha','Gerente Geral','Gerente Tarde','Auxiliar'],t:[['07:00','15:10'],['09:00','17:00'],['13:00','19:00'],['14:00','23:00']],over:[{},{},{},{}],url:''};
   const next={...base};
   if(raw&&Array.isArray(raw.names))next.names=raw.names.slice(0,4).map((v,i)=>String(v||base.names[i]));
   if(raw&&Array.isArray(raw.t))next.t=Array.from({length:4},(_,p)=>{
@@ -135,7 +135,7 @@ function normalizeState(raw){
 }
 
 async function loadFromCloud(){
-  if(!APP_SCRIPT_URL||APP_SCRIPT_URL.includes('SEU_ID_DO_APPS_SCRIPT'))return null;
+  if(!APP_SCRIPT_URL||APP_SCRIPT_URL.includes('AKfycbxBJo5T9B-kolCGasn_F4KVQ9g9OneJ7hieB4FpBXra2j3XBa90CIWjpoRo8hXQRmJz'))return null;
   try{
     const r=await fetch(APP_SCRIPT_URL,{method:'GET',cache:'no-store'});
     if(!r.ok) return null;
@@ -152,7 +152,7 @@ async function loadFromCloud(){
   }
 }
 
-/* Motor: 0 = Gerente Geral, 1 = Gerente 1, 2 = Gerente 2, 3 = Auxiliar.
+/* Motor: 0 = Gerente Manha, 1 = Gerente Geral, 2 = Gerente Tarde, 3 = Auxiliar.
    Cada folga se repete 7 dias depois; uma edição manual muda o ciclo dali em diante. */
 const PREF=[[6,1],[0,3],[5,2],[1,3]];
 function run(end){
@@ -258,7 +258,7 @@ $('#pv').onclick=()=>go(-1);$('#nx').onclick=()=>go(1);
 $('#m').onchange=()=>go(0);
 $('#y').onchange=()=>{if(+$('#y').value<2026)$('#y').value=2026;go(0)};
 
-const roles=['Gerente Geral (cobre qualquer um)','Gerente 1 (cobre qualquer um)','Gerente 2','Auxiliar (cobre as folgas)'];
+const roles=['Gerente Manha','Gerente Geral','Gerente Tarde','Auxiliar'];
 $('#cfg').innerHTML=[0,1,2,3].map(p=>`<div>
   <label>${roles[p]}</label>
   <input data-n="${p}" value="${esc(S.names[p])}" aria-label="Nome">
@@ -281,7 +281,7 @@ $('#y').value=Math.max(2026,hoje.getFullYear());
 $('#m').value=hoje.getFullYear()<2026?0:hoje.getMonth();
 
 (async()=>{
-  if(APP_SCRIPT_URL && !APP_SCRIPT_URL.includes('SEU_ID_DO_APPS_SCRIPT')){
+  if(APP_SCRIPT_URL && !APP_SCRIPT_URL.includes('AKfycbxBJo5T9B-kolCGasn_F4KVQ9g9OneJ7hieB4FpBXra2j3XBa90CIWjpoRo8hXQRmJz')){
     await loadFromCloud();
   }
   render();
