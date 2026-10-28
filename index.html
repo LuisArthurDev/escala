@@ -97,7 +97,7 @@ const D0=Date.UTC(2026,0,1)/864e5;
 const KEY='escala5x2v2';
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
-S=S||{names:['Gerente Geral','Gerente','Auxiliar','Folguista'],
+S=S||{names:['Gerente Geral','Gerente 1','Gerente 2','Auxiliar'],
  t:[['09:00','18:00'],['12:00','21:00'],['08:00','17:00'],['08:00','17:00']],
  over:[{},{},{},{}],url:''};
 
@@ -107,7 +107,7 @@ const fmt=d=>iso(d).split('-').reverse().slice(0,2).join('/');
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const save=()=>localStorage.setItem(KEY,JSON.stringify(S));
 
-/* Motor: 0 = Gerente Geral, 1 = Gerente, 2 = Auxiliar, 3 = Folguista.
+/* Motor: 0 = Gerente Geral, 1 = Gerente 1, 2 = Gerente 2, 3 = Auxiliar.
    Cada folga se repete 7 dias depois; uma edição manual muda o ciclo dali em diante. */
 const PREF=[[6,1],[0,3],[5,2],[1,3]];
 function run(end){
@@ -212,7 +212,7 @@ $('#pv').onclick=()=>go(-1);$('#nx').onclick=()=>go(1);
 $('#m').onchange=()=>go(0);
 $('#y').onchange=()=>{if(+$('#y').value<2026)$('#y').value=2026;go(0)};
 
-const roles=['Gerente Geral (cobre qualquer um)','Gerente (cobre qualquer um)','Auxiliar','Folguista (cobre as folgas)'];
+const roles=['Gerente Geral (cobre qualquer um)','Gerente 1 (cobre qualquer um)','Gerente 2','Auxiliar (cobre as folgas)'];
 $('#cfg').innerHTML=[0,1,2,3].map(p=>`<div>
   <label>${roles[p]}</label>
   <input data-n="${p}" value="${esc(S.names[p])}" aria-label="Nome">
